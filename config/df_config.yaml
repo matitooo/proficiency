@@ -1,0 +1,17 @@
+categorical_list:
+  - Vocab_range
+  - CEFR_level
+  - L1
+  - Domain_of_specialization
+  - Dialang_writing_score
+  - Reading_frequency
+  - Other_language
+
+binary_list:
+  - Reinforced_section
+
+numerical_list:
+  - Years_studying_L2
+  - Stay_duration_weeks
+  - Stay_frequency
+  - Language_exposure
