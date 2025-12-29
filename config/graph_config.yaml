@@ -2,5 +2,6 @@ graph_columns:
   - "Years_studying_L2"
   - "Reinforced_section"
   - "Language_exposure"
+  - "Dialang_writing_score"
 
 threshold: 0.7
