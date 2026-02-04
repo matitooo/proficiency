@@ -15,7 +15,8 @@ def train(model_name,data,params):
         solver='adam', 
         learning_rate='constant', 
         learning_rate_init=params['lr'],                    
-        max_iter=params['n_epochs'],                      
+        max_iter=params['n_epochs'],
+        alpha = params['weight_decay'],                      
         random_state=42)
         
         model.fit(X_train,y_train.squeeze())
@@ -73,6 +74,8 @@ def test(model_name,model,data):
         acc = accuracy_score(y_test,preds)
         f1 = accuracy_score(y_test,preds)
         print(f"Accuracy : {acc:.3f} F1 : {f1:.3f}")
+        return acc,f1
+    
     elif model_name == 'graph':
         model.eval()
         with torch.no_grad():
@@ -85,3 +88,4 @@ def test(model_name,model,data):
             acc = accuracy_score(y_test, preds)
             f1 = f1_score(y_test, preds, average='macro')
             print(f"Accuracy : {acc:.3f} F1 : {f1:.3f}")
+        return acc,f1

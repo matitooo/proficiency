@@ -6,13 +6,11 @@ import torch
 from torch.nn.utils.rnn import pad_sequence
 from torch_geometric.data import Data
 
-def params_extraction(sweep = False):
+def params_extraction():
     graph_config_path =  "config/graph_config.yaml"
     model_config_path = "config/model_config.yaml"
     train_config_path = "config/train_config.yaml"
     df_config_path = "config/df_config.yaml"
-    if sweep:
-        train_config_path = "config/sweep_config.yaml"
     with open(graph_config_path, "r") as f:
         graph_config = yaml.load(f, Loader=yaml.SafeLoader)
     with open(model_config_path, "r") as f:
