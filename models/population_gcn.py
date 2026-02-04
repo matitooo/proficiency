@@ -18,7 +18,9 @@ class PopulationGCN(nn.Module):
         self.lstm = nn.LSTM(
             input_size=embed_dim,
             hidden_size=hidden_dim,
-            batch_first=True
+            batch_first=True,
+            num_layers= 2,
+            bidirectional= True
         )
 
         # GCN
@@ -40,29 +42,15 @@ class PopulationGCN(nn.Module):
         edge_weight = data.edge_weight.to(self.device)
         lengths = data.lengths.to(self.device)
 
-        # --------------------
-        # Embedding
-        # --------------------
         x = self.embedding(x)  
-        # --------------------
-        # LSTM
-        # --------------------
         out, _ = self.lstm(x) 
 
         idx = (lengths - 1).view(-1, 1, 1).expand(-1, 1, out.size(2))
         x = out.gather(1, idx).squeeze(1)
-
-        # --------------------
-        # GCN
-        # --------------------
         x = self.conv1(x, edge_index, edge_weight=edge_weight)
         x = F.relu(x)
         x = self.conv2(x, edge_index, edge_weight=edge_weight)
         x = F.relu(x)
-
-        # --------------------
-        # Classifier
-        # --------------------
         return self.fc(x)
 
     def predict(self, data):
