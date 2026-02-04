@@ -1,6 +1,5 @@
 columns:
   categorical:
-    - Vocab_range
     - L1
     - Domain_of_specialization
     - Reading_frequency
