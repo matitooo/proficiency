@@ -1,28 +1,58 @@
 from sklearn.neural_network import MLPClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score,accuracy_score
 from models.population_gcn import PopulationGCN
 import torch
 import torch.nn as nn
 import torch.optim as optim
 
-def train(model_name,data,params):
-    if model_name == 'linear':
+def train(model_type,data,params):
+    
+    if model_type == 'linear':
         X_train,X_test,y_train,y_test = data
         
-        model = MLPClassifier(
-        hidden_layer_sizes=(params['hidden_size'],), 
-        activation='relu',                  
-        solver='adam', 
-        learning_rate='constant', 
-        learning_rate_init=params['lr'],                    
-        max_iter=params['n_epochs'],
-        alpha = params['weight_decay'],                      
-        random_state=42)
+        linear_model = params['model_name']
         
+        if linear_model=='MLP':
+                    model = MLPClassifier(
+                        hidden_layer_sizes=(params['hidden_size'],), 
+                        activation='relu',                  
+                        solver='adam', 
+                        learning_rate='constant', 
+                        learning_rate_init=params['lr'],                    
+                        max_iter=params['n_epochs'],
+                        alpha = params['weight_decay'],                      
+                        random_state=42)
+        elif linear_model == 'DecisionTree':
+            model = DecisionTreeClassifier(
+                max_depth= params['max_depth'],
+                min_samples_leaf= params['min_samples_leaf'],
+                min_samples_split = params['min_samples_split'],
+                criterion = params['criterion']
+            )
+        
+        elif linear_model == 'RandomForest':
+            model = RandomForestClassifier(
+                n_estimators = params['n_estimators'],
+                max_depth = params['max_depth'],
+                min_samples_leaf = params['min_samples_leaf'],
+                min_samples_split = params['min_samples_split'],
+                max_features = params['max_features']
+            )
+        
+        elif linear_model == 'Logreg':
+            model = LogisticRegression(
+                C = params['C'],
+                penalty=params['penalty'],
+                solver=params['solver'],
+                max_iter=params['max_iter']
+            )
         model.fit(X_train,y_train.squeeze())
-        return model 
+        return model
     
-    elif model_name == 'graph':
+    elif model_type == 'graph':
         num_categories = 12           
         embed_dim = 16
         hidden_dim = params['hidden_size']
@@ -67,16 +97,17 @@ def train(model_name,data,params):
 
         
     
-def test(model_name,model,data):
-    if model_name == 'linear':
+def test(model_type,model,data):
+    if model_type == 'linear':
         X_train,X_test,y_train,y_test = data
+        model_type = type(model).__name__
         preds = model.predict(X_test)
         acc = accuracy_score(y_test,preds)
-        f1 = accuracy_score(y_test,preds)
-        print(f"Accuracy : {acc:.3f} F1 : {f1:.3f}")
+        f1 = f1_score(y_test,preds,average='macro')
+        print(f"Model Name : {model_type} Accuracy : {acc:.3f} F1 : {f1:.3f}")
         return acc,f1
     
-    elif model_name == 'graph':
+    elif model_type == 'graph':
         model.eval()
         with torch.no_grad():
             logits = model(data)             

@@ -1,3 +1,41 @@
-lr: 0.001
-n_epochs: 20
-weight_decay: 0.001
+MLP:
+  model_name: MLP
+  lr: 0.005
+
+  n_epochs: 50
+
+  hidden_size: 128
+
+  weight_decay: 0.005
+
+DecisionTree:
+  model_name: DecisionTree
+  max_depth: 5
+
+  min_samples_split: 10
+
+  min_samples_leaf: 2
+
+  criterion: gini
+
+RandomForest:
+  model_name: RandomForest
+  n_estimators: 500
+
+  max_depth: null
+
+  min_samples_split: 10
+
+  min_samples_leaf: 1
+
+  max_features: sqrt
+
+Logreg:
+  model_name: Logreg
+  C: 5.0
+
+  penalty: l2
+
+  solver: saga
+
+  max_iter: 1000

@@ -5,6 +5,7 @@ from sklearn.model_selection import train_test_split
 import torch
 from torch.nn.utils.rnn import pad_sequence
 from torch_geometric.data import Data
+from itertools import product
 
 def params_extraction():
     graph_config_path =  "config/graph_config.yaml"
@@ -23,7 +24,8 @@ def params_extraction():
     return params
 
 def data_preprocessing(model_name,params,dataset):
-    if model_name == 'linear':
+    dataset = dataset.copy(deep=True)
+    if model_name == 'linear':  
         columns = params['columns']
         columns_categorical = columns['categorical']
         columns_numerical = columns['numerical']
@@ -110,8 +112,21 @@ def data_preprocessing(model_name,params,dataset):
         return data
 
 
+def generate_model_sweeps(param_grids):
+    sweeps = {}
 
+    for model_name, params in param_grids.items():
+        keys = list(params.keys())
+        values = list(params.values())
 
+        model_configs = []
+        for combination in product(*values):
+            config = dict(zip(keys, combination))
+            model_configs.append(config)
+
+        sweeps[model_name] = model_configs
+
+    return sweeps
 
 
 
