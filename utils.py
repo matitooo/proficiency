@@ -20,7 +20,7 @@ def params_extraction():
         train_config = yaml.load(f, Loader=yaml.SafeLoader)
     with open(df_config_path, "r") as f:
         df_config = yaml.load(f, Loader=yaml.SafeLoader)
-    params =df_config | graph_config | model_config |train_config
+    params =df_config | graph_config | model_config
     return params
 
 def data_preprocessing(model_name,params,dataset):

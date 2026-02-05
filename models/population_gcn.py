@@ -40,6 +40,7 @@ class PopulationGCN(nn.Module):
         edge_weight = data.edge_weight.to(self.device)
         lengths = data.lengths.to(self.device)
 
+        print(x)
         x = self.embedding(x)  
 
         packed = pack_padded_sequence(

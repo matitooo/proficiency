@@ -29,6 +29,9 @@ def train_mode(model):
     
     elif model == 'graph':
         params = params_extraction()
+        linear_model_config = train_config['Graph']
+        for p in linear_model_config.keys():
+            params[p] = linear_model_config[p]
         data = data_preprocessing(model,params,dataset)
         trained_model = train(model,data,params)
         acc,f1 = test(model,trained_model,data)
