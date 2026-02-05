@@ -38,32 +38,40 @@ def train_mode(model):
         
 
 def sweep_mode(model):
-    if args.model == 'linear':
+    if model == 'linear':
         params = params_extraction()
         with open('config/sweep_config.yaml', "r") as f:
             sweep_config = yaml.load(f, Loader=yaml.SafeLoader)
+            del sweep_config['Graph']
         
-        combinations = generate_model_sweeps(sweep_config)
-
-        df = pd.DataFrame()
-        rows = []
-        for m, configs in combinations.items():
-            print(f"Now tuning {m}")
-            for sweep_params in tqdm(configs):
-                sweep_params['model_name'] = m
-                data = data_preprocessing(model,params,dataset)
-                trained_model = train(model,data,sweep_params)
-                acc,f1 = test(model,trained_model,data)
-                sweep_params['Test Accuracy'] = acc
-                sweep_params['Test F1'] = f1
-                row = {"model": m}
-                row.update(sweep_params)
-                rows.append(row)
-            
-        df = pd.DataFrame(rows)
-        pd.DataFrame.to_csv(df,'results_'+model+'.csv')
         
 
+    elif model == 'graph':
+        params = params_extraction()
+        with open('config/sweep_config.yaml', "r") as f:
+            sweep_config = yaml.load(f, Loader=yaml.SafeLoader)
+            sweep_params_graph = sweep_config['Graph']
+            sweep_config = dict()
+            sweep_config['Graph'] = sweep_params_graph
+        
+    combinations = generate_model_sweeps(sweep_config)  
+    df = pd.DataFrame()
+    rows = []
+    for m, configs in combinations.items():
+        print(f"Now tuning {m}")
+        for sweep_params in tqdm(configs):
+            sweep_params['model_name'] = m
+            data = data_preprocessing(model,params,dataset)
+            trained_model = train(model,data,sweep_params)
+            acc,f1 = test(model,trained_model,data)
+            sweep_params['Test Accuracy'] = acc
+            sweep_params['Test F1'] = f1
+            row = {"model": m}
+            row.update(sweep_params)
+            rows.append(row)
+        
+    df = pd.DataFrame(rows)
+    pd.DataFrame.to_csv(df,'results_'+model+'.csv')
 
 
 if __name__ == "__main__":
@@ -91,3 +99,10 @@ if __name__ == "__main__":
         train_mode(model = args.model)
     elif args.sweep:
         sweep_mode(model = args.model)
+        
+        
+        
+        
+        
+        
+        
