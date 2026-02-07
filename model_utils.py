@@ -101,7 +101,7 @@ def train(model_type,data,params):
         loss.backward()
         optimizer.step()
 
-        print(f"Epoch {epoch+1}/{num_epochs} | Loss: {loss.item():.4f}")
+        # print(f"Epoch {epoch+1}/{num_epochs} | Loss: {loss.item():.4f}")
 
     return model
 
