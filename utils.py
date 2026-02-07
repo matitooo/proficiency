@@ -6,18 +6,16 @@ import torch
 from torch.nn.utils.rnn import pad_sequence
 from torch_geometric.data import Data
 from itertools import product
+from sklearn.preprocessing import LabelEncoder
 
 def params_extraction():
     graph_config_path =  "config/graph_config.yaml"
     model_config_path = "config/model_config.yaml"
-    train_config_path = "config/train_config.yaml"
     df_config_path = "config/df_config.yaml"
     with open(graph_config_path, "r") as f:
         graph_config = yaml.load(f, Loader=yaml.SafeLoader)
     with open(model_config_path, "r") as f:
         model_config = yaml.load(f, Loader=yaml.SafeLoader)
-    with open(train_config_path, "r") as f:
-        train_config = yaml.load(f, Loader=yaml.SafeLoader)
     with open(df_config_path, "r") as f:
         df_config = yaml.load(f, Loader=yaml.SafeLoader)
     params =df_config | graph_config | model_config
@@ -35,6 +33,8 @@ def data_preprocessing(model_name,params,dataset):
         dataset = pd.get_dummies(dataset, columns=columns_categorical+columns_binary)
         dataset[columns_numerical] = (dataset[columns_numerical] - dataset[columns_numerical].min()) / (dataset[columns_numerical].max() - dataset[columns_numerical].min())
         y = dataset[label]
+        le = LabelEncoder()
+        y = le.fit_transform(y)
         X = dataset.drop(columns=label)
         X_train,X_test,y_train,y_test = train_test_split(X,y, test_size=0.2)
         return X_train,X_test,y_train,y_test

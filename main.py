@@ -57,11 +57,11 @@ def sweep_mode(model):
     combinations = generate_model_sweeps(sweep_config)  
     df = pd.DataFrame()
     rows = []
+    data = data_preprocessing(model,params,dataset)
     for m, configs in combinations.items():
         print(f"Now tuning {m}")
         for sweep_params in tqdm(configs):
             sweep_params['model_name'] = m
-            data = data_preprocessing(model,params,dataset)
             trained_model = train(model,data,sweep_params)
             acc,f1 = test(model,trained_model,data)
             sweep_params['Test Accuracy'] = acc

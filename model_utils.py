@@ -7,24 +7,30 @@ from models.population_gcn import PopulationGCN
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import numpy as np
 
 def train(model_type,data,params):
     
     if model_type == 'linear':
         X_train,X_test,y_train,y_test = data
-        
+        y_train = y_train.astype(np.int64) 
         linear_model = params['model_name']
         
         if linear_model=='MLP':
                     model = MLPClassifier(
-                        hidden_layer_sizes=(params['hidden_size'],), 
-                        activation='relu',                  
-                        solver='adam', 
-                        learning_rate='constant', 
-                        learning_rate_init=params['lr'],                    
-                        max_iter=params['n_epochs'],
-                        alpha = params['weight_decay'],                      
-                        random_state=42)
+                    hidden_layer_sizes=(params['hidden_size'],),
+                    activation='relu',
+                    solver='adam',
+                    learning_rate='constant',
+                    learning_rate_init=params['lr'],
+                    max_iter=params['n_epochs'],
+                    alpha=params['weight_decay'],
+                    random_state=42,
+                    early_stopping=True,
+                    validation_fraction=0.1,   
+                    n_iter_no_change=10,       
+                    tol=1e-4                   
+                )
         elif linear_model == 'DecisionTree':
             model = DecisionTreeClassifier(
                 max_depth= params['max_depth'],
@@ -54,7 +60,7 @@ def train(model_type,data,params):
     
     elif model_type == 'graph':
         num_categories = 12           
-        embed_dim = 16
+        embed_dim = params['embed_dim']
         hidden_dim = params['hidden_size']
         out_dim = torch.max(data.y)
         model = PopulationGCN(
@@ -79,14 +85,10 @@ def train(model_type,data,params):
 
         
         out = model(data)
-
-        
         loss = criterion(
             out[data.train_mask],
             data.y[data.train_mask]
         )
-
-        
         loss.backward()
         optimizer.step()
 
