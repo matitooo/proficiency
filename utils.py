@@ -6,7 +6,8 @@ import torch
 from torch.nn.utils.rnn import pad_sequence
 from torch_geometric.data import Data
 from itertools import product
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import LabelEncoder,StandardScaler
+
 
 def params_extraction():
     graph_config_path =  "config/graph_config.yaml"
@@ -31,12 +32,15 @@ def data_preprocessing(model_name,params,dataset):
         label = columns['label']
         dataset = dataset.drop(columns=['pseudo','sense','Student_text','Vocab_range'])
         dataset = pd.get_dummies(dataset, columns=columns_categorical+columns_binary)
-        dataset[columns_numerical] = (dataset[columns_numerical] - dataset[columns_numerical].min()) / (dataset[columns_numerical].max() - dataset[columns_numerical].min())
-        y = dataset[label]
+        # dataset[columns_numerical] = (dataset[columns_numerical] - dataset[columns_numerical].min()) / (dataset[columns_numerical].max() - dataset[columns_numerical].min())
+        y = dataset[label].values.ravel()
         le = LabelEncoder()
         y = le.fit_transform(y)
         X = dataset.drop(columns=label)
         X_train,X_test,y_train,y_test = train_test_split(X,y, test_size=0.2)
+        scaler = StandardScaler()
+        X_train[columns_numerical] = scaler.fit_transform(X_train[columns_numerical])
+        X_test[columns_numerical] = scaler.transform(X_test[columns_numerical])
         return X_train,X_test,y_train,y_test
     
     elif model_name == 'graph':

@@ -3,7 +3,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score,accuracy_score
-from models.population_gcn import PopulationGCN
+from models.population_gcn import PopulationGCN,PopulationGAT
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -59,16 +59,25 @@ def train(model_type,data,params):
         return model
     
     elif model_type == 'graph':
+        model_name = params['model_name']
         num_categories = 12           
         embed_dim = params['embed_dim']
         hidden_dim = params['hidden_size']
         out_dim = torch.max(data.y)
-        model = PopulationGCN(
-            num_categories=num_categories, 
-            embed_dim=embed_dim,
-            hidden_dim=hidden_dim,
-            out_dim=out_dim+1
-        )     
+        if model_name == 'GCN':
+            model = PopulationGCN(
+                num_categories=num_categories, 
+                embed_dim=embed_dim,
+                hidden_dim=hidden_dim,
+                out_dim=out_dim+1
+            )     
+        elif model_name == 'GAT':
+            model = PopulationGAT(
+                num_categories=num_categories, 
+                embed_dim=embed_dim,
+                hidden_dim=hidden_dim,
+                out_dim=out_dim+1
+            )     
         criterion = nn.CrossEntropyLoss()
         optimizer = optim.Adam(model.parameters(), lr=params['lr'])  
         

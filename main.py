@@ -11,59 +11,39 @@ import argparse
 
 
 
-def train_mode(model):
+def train_mode(model_type):
     with open('config/train_config.yaml', "r") as f:
         train_config = yaml.load(f, Loader=yaml.SafeLoader)
-    models_list = train_config.keys()
-    
-    if model == 'linear':
-    
-        for linear_model in models_list:
-            params = params_extraction()
-            linear_model_config = train_config[linear_model]
-            for p in linear_model_config.keys():
-                params[p] = linear_model_config[p]
-            data = data_preprocessing(model,params,dataset)
-            trained_model = train(model,data,params)
-            acc,f1 = test(model,trained_model,data)
-    
-    elif model == 'graph':
+    models_dict = train_config[model_type]
+    models_list = models_dict.keys()
+    for model in models_list:
+        print(f"Now training {model}")
         params = params_extraction()
-        linear_model_config = train_config['Graph']
-        for p in linear_model_config.keys():
-            params[p] = linear_model_config[p]
-        data = data_preprocessing(model,params,dataset)
-        trained_model = train(model,data,params)
-        acc,f1 = test(model,trained_model,data)
+        model_config = models_dict[model]
+        for p in model_config.keys():
+            params[p] =model_config[p]
+        data = data_preprocessing(model_type,params,dataset)
+        trained_model = train(model_type,data,params)
+        acc,f1 = test(model_type,trained_model,data)
+
         
 
-def sweep_mode(model):
-    if model == 'linear':
-        params = params_extraction()
-        with open('config/sweep_config.yaml', "r") as f:
-            sweep_config = yaml.load(f, Loader=yaml.SafeLoader)
-            del sweep_config['Graph']
-        
-        
-
-    elif model == 'graph':
-        params = params_extraction()
-        with open('config/sweep_config.yaml', "r") as f:
-            sweep_config = yaml.load(f, Loader=yaml.SafeLoader)
-            sweep_params_graph = sweep_config['Graph']
-            sweep_config = dict()
-            sweep_config['Graph'] = sweep_params_graph
+def sweep_mode(model_type):
+    params = params_extraction()
+    with open('config/sweep_config.yaml', "r") as f:
+        sweep_config = yaml.load(f, Loader=yaml.SafeLoader)
+        sweep_config = sweep_config[model_type]
         
     combinations = generate_model_sweeps(sweep_config)  
     df = pd.DataFrame()
     rows = []
-    data = data_preprocessing(model,params,dataset)
+    data = data_preprocessing(model_type,params,dataset)
     for m, configs in combinations.items():
         print(f"Now tuning {m}")
         for sweep_params in tqdm(configs):
             sweep_params['model_name'] = m
-            trained_model = train(model,data,sweep_params)
-            acc,f1 = test(model,trained_model,data)
+            trained_model = train(model_type,data,sweep_params)
+            acc,f1 = test(model_type,trained_model,data)
             sweep_params['Test Accuracy'] = acc
             sweep_params['Test F1'] = f1
             row = {"model": m}
@@ -71,7 +51,7 @@ def sweep_mode(model):
             rows.append(row)
         
     df = pd.DataFrame(rows)
-    pd.DataFrame.to_csv(df,'results_'+model+'.csv')
+    pd.DataFrame.to_csv(df,'results_'+model_type+'.csv')
 
 
 if __name__ == "__main__":
@@ -96,9 +76,9 @@ if __name__ == "__main__":
     dataset = dataset[dataset['sense'].apply(len) > 1]
     
     if args.train:
-        train_mode(model = args.model)
+        train_mode(model_type = args.model)
     elif args.sweep:
-        sweep_mode(model = args.model)
+        sweep_mode(model_type = args.model)
         
         
         

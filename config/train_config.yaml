@@ -1,47 +1,54 @@
-MLP:
-  model_name: MLP
-  lr: 0.005
+linear:
+  MLP:
+    model_name: MLP
+    lr: 0.005
+    n_epochs: 50
+    hidden_size: 128
+    weight_decay: 0.005
 
-  n_epochs: 50
+  DecisionTree:
+    model_name: DecisionTree
+    max_depth: 5
 
-  hidden_size: 128
+    min_samples_split: 10
 
-  weight_decay: 0.005
+    min_samples_leaf: 2
 
-DecisionTree:
-  model_name: DecisionTree
-  max_depth: 5
+    criterion: gini
 
-  min_samples_split: 10
+  RandomForest:
+    model_name: RandomForest
+    n_estimators: 500
 
-  min_samples_leaf: 2
+    max_depth: null
 
-  criterion: gini
+    min_samples_split: 10
 
-RandomForest:
-  model_name: RandomForest
-  n_estimators: 500
+    min_samples_leaf: 1
 
-  max_depth: null
+    max_features: sqrt
 
-  min_samples_split: 10
+  Logreg:
+    model_name: Logreg
+    C: 5.0
 
-  min_samples_leaf: 1
+    penalty: l2
 
-  max_features: sqrt
+    solver: saga
 
-Logreg:
-  model_name: Logreg
-  C: 5.0
+    max_iter: 1000
 
-  penalty: l2
+graph:
+  GCN:
+    model_name: GCN
+    hidden_size: 128
+    lr: 0.001
+    n_epochs: 1
+    embed_dim: 16
 
-  solver: saga
-
-  max_iter: 1000
-
-Graph:
-  hidden_size: 128
-  lr: 0.001
-  n_epochs: 20
-  embed_dim: 16
+  GAT:
+    model_name: GAT
+    hidden_size: 128
+    lr: 0.001
+    n_epochs: 1
+    embed_dim: 16
