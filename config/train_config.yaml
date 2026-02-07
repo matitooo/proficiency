@@ -41,14 +41,14 @@ linear:
 graph:
   GCN:
     model_name: GCN
-    hidden_size: 128
+    hidden_size: 256
     lr: 0.001
-    n_epochs: 1
+    n_epochs: 200
     embed_dim: 16
 
   GAT:
     model_name: GAT
-    hidden_size: 128
-    lr: 0.001
-    n_epochs: 1
-    embed_dim: 16
+    hidden_size: 512
+    lr: 0.005
+    n_epochs: 100
+    embed_dim: 32
