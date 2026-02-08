@@ -93,7 +93,7 @@ def data_preprocessing(model_name,params,dataset):
 
         train_idx, test_idx = train_test_split(
             indices,
-            test_size=0.2,
+            test_size=0.3,
             stratify=y_tensor.numpy(),  
             random_state=42
         )

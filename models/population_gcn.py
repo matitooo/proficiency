@@ -117,8 +117,8 @@ class PopulationGAT(nn.Module):
         x = out.gather(1, idx).squeeze(1)
         x = self.gat1(x, edge_index)
         x = F.relu(x)
-        # x = self.gat2(x, edge_index)
-        # x = F.relu(x)
+        x = self.gat2(x, edge_index)
+        x = F.relu(x)
         return self.fc(x)
 
     def predict(self, data):
