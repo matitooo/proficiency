@@ -87,7 +87,7 @@ def train(model_type,data,params):
         
         model.train()
         num_epochs = params['n_epochs']
-
+    prev_loss = 0
     for epoch in range(num_epochs):
         model.train()
         optimizer.zero_grad()
@@ -98,10 +98,14 @@ def train(model_type,data,params):
             out[data.train_mask],
             data.y[data.train_mask]
         )
-        loss.backward()
-        optimizer.step()
-
-        # print(f"Epoch {epoch+1}/{num_epochs} | Loss: {loss.item():.4f}")
+        print(abs(prev_loss-loss.item()))
+        if abs(prev_loss-loss.item()) < 0.005:
+            break 
+        else:
+            prev_loss = loss.item()
+            loss.backward()
+            optimizer.step()
+        print(f"Epoch {epoch+1}/{num_epochs} | Loss: {loss.item():.4f}")
 
     return model
 

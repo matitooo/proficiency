@@ -7,10 +7,6 @@ from tqdm import tqdm
 from itertools import product
 import argparse
 
-
-
-
-
 def train_mode(model_type):
     with open('config/train_config.yaml', "r") as f:
         train_config = yaml.load(f, Loader=yaml.SafeLoader)
@@ -51,7 +47,7 @@ def sweep_mode(model_type):
             rows.append(row)
         
     df = pd.DataFrame(rows)
-    pd.DataFrame.to_csv(df,'results_'+model_type+'.csv')
+    pd.DataFrame.to_csv(df,'results/results_'+model_type+'.csv')
 
 
 if __name__ == "__main__":

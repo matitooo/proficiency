@@ -20,16 +20,16 @@ class PopulationGCN(nn.Module):
             input_size=embed_dim,
             hidden_size=hidden_dim,
             batch_first=True,
-            num_layers= 2,
-            bidirectional= True
+            num_layers= 1,
+            bidirectional= False
         )
 
         # GCN
-        self.conv1 = tg.GCNConv(hidden_dim*2, hidden_dim*2)
-        self.conv2 = tg.GCNConv(hidden_dim*2, hidden_dim*2)
+        self.conv1 = tg.GCNConv(hidden_dim, hidden_dim)
+        self.conv2 = tg.GCNConv(hidden_dim, hidden_dim)
 
         # Classifier
-        self.fc = nn.Linear(hidden_dim*2, out_dim)
+        self.fc = nn.Linear(hidden_dim, out_dim)
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -81,16 +81,16 @@ class PopulationGAT(nn.Module):
             input_size=embed_dim,
             hidden_size=hidden_dim,
             batch_first=True,
-            num_layers= 2,
-            bidirectional= True
+            num_layers= 1,
+            bidirectional= False
         )
 
         # GCN
-        self.gat1 = tg.GATConv(hidden_dim*2, hidden_dim*2)
-        self.gat2 = tg.GATConv(hidden_dim*2, hidden_dim*2)
+        self.gat1 = tg.GATConv(hidden_dim, hidden_dim)
+        self.gat2 = tg.GATConv(hidden_dim, hidden_dim)
 
         # Classifier
-        self.fc = nn.Linear(hidden_dim*2, out_dim)
+        self.fc = nn.Linear(hidden_dim, out_dim)
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -117,8 +117,8 @@ class PopulationGAT(nn.Module):
         x = out.gather(1, idx).squeeze(1)
         x = self.gat1(x, edge_index)
         x = F.relu(x)
-        x = self.gat2(x, edge_index)
-        x = F.relu(x)
+        # x = self.gat2(x, edge_index)
+        # x = F.relu(x)
         return self.fc(x)
 
     def predict(self, data):
