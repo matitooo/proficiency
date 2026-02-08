@@ -325,16 +325,14 @@ graph:
 
   GAT:
     hidden_size:
-      - 512
       - 1024
 
     lr:
       - 0.005
-      - 0.001
 
     n_epochs:
       - 300
 
     embed_dim:
-      - 32
-      - 64
+      # - 64
+      - 128
