@@ -99,7 +99,7 @@ def train(model_type,data,params):
             data.y[data.train_mask]
         )
         print(abs(prev_loss-loss.item()))
-        if abs(prev_loss-loss.item()) < 0.005:
+        if abs(prev_loss-loss.item()) < 0.0001:
             break 
         else:
             prev_loss = loss.item()
