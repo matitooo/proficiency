@@ -98,14 +98,14 @@ def train(model_type,data,params):
             out[data.train_mask],
             data.y[data.train_mask]
         )
-        print(abs(prev_loss-loss.item()))
         if abs(prev_loss-loss.item()) < 0.0001:
             break 
         else:
             prev_loss = loss.item()
             loss.backward()
             optimizer.step()
-        print(f"Epoch {epoch+1}/{num_epochs} | Loss: {loss.item():.4f}")
+        if epoch%10 == 0:
+            print(f"Epoch {epoch+1}/{num_epochs} | Loss: {loss.item():.4f}")
 
     return model
 
