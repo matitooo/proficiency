@@ -81,7 +81,7 @@ class PopulationGAT(nn.Module):
             input_size=embed_dim,
             hidden_size=hidden_dim,
             batch_first=True,
-            num_layers= 1,
+            num_layers= 2,
             bidirectional= False
         )
 
