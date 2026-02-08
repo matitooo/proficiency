@@ -104,8 +104,8 @@ def train(model_type,data,params):
             prev_loss = loss.item()
             loss.backward()
             optimizer.step()
-        if epoch%10 == 0:
-            print(f"Epoch {epoch+1}/{num_epochs} | Loss: {loss.item():.4f}")
+        # if epoch%10 == 0:
+        #     print(f"Epoch {epoch+1}/{num_epochs} | Loss: {loss.item():.4f}")
 
     return model
 
@@ -133,5 +133,5 @@ def test(model_type,model,data):
 
             acc = accuracy_score(y_test, preds)
             f1 = f1_score(y_test, preds, average='macro')
-            print(f"Accuracy : {acc:.3f} F1 : {f1:.3f}")
+            # print(f"Accuracy : {acc:.3f} F1 : {f1:.3f}")
         return acc,f1
