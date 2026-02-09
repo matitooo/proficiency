@@ -67,7 +67,8 @@ def train(model_type,data,params):
             tol=params['tol'],
             random_state=42
         )
-            model.fit(X_train,y_train.squeeze())
+        
+        model.fit(X_train,y_train.squeeze())
         return model
     
     elif model_type == 'graph':
