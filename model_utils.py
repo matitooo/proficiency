@@ -16,46 +16,58 @@ def train(model_type,data,params):
         y_train = y_train.astype(np.int64) 
         linear_model = params['model_name']
         
-        if linear_model=='MLP':
-                    model = MLPClassifier(
-                    hidden_layer_sizes=(params['hidden_size'],),
-                    activation='relu',
-                    solver='adam',
-                    learning_rate='constant',
-                    learning_rate_init=params['lr'],
-                    max_iter=params['n_epochs'],
-                    alpha=params['weight_decay'],
-                    random_state=42,
-                    early_stopping=True,
-                    validation_fraction=0.1,   
-                    n_iter_no_change=10,       
-                    tol=1e-4                   
-                )
+        if linear_model == 'MLP':
+            model = MLPClassifier(
+                hidden_layer_sizes=(params['hidden_size'],),
+                activation=params['activation'],
+                solver='adam',
+                learning_rate='constant',
+                learning_rate_init=params['lr'],
+                max_iter=params['n_epochs'],
+                alpha=params['weight_decay'],
+                batch_size=params['batch_size'],
+                random_state=42,
+                early_stopping=True,
+                validation_fraction=0.1,
+                n_iter_no_change=10,
+                tol=1e-4
+            )
         elif linear_model == 'DecisionTree':
             model = DecisionTreeClassifier(
-                max_depth= params['max_depth'],
-                min_samples_leaf= params['min_samples_leaf'],
-                min_samples_split = params['min_samples_split'],
-                criterion = params['criterion']
+                max_depth=params['max_depth'],
+                min_samples_leaf=params['min_samples_leaf'],
+                min_samples_split=params['min_samples_split'],
+                max_features=params['max_features'],
+                criterion=params['criterion'],
+                class_weight=params['class_weight'],
+                random_state=42
             )
         
         elif linear_model == 'RandomForest':
             model = RandomForestClassifier(
-                n_estimators = params['n_estimators'],
-                max_depth = params['max_depth'],
-                min_samples_leaf = params['min_samples_leaf'],
-                min_samples_split = params['min_samples_split'],
-                max_features = params['max_features']
+                n_estimators=params['n_estimators'],
+                max_depth=params['max_depth'],
+                min_samples_leaf=params['min_samples_leaf'],
+                min_samples_split=params['min_samples_split'],
+                max_features=params['max_features'],
+                bootstrap=params['bootstrap'],
+                class_weight=params['class_weight'],
+                random_state=42,
+                n_jobs=-1
             )
-        
+    
         elif linear_model == 'Logreg':
             model = LogisticRegression(
-                C = params['C'],
-                penalty=params['penalty'],
-                solver=params['solver'],
-                max_iter=params['max_iter']
-            )
-        model.fit(X_train,y_train.squeeze())
+            C=params['C'],
+            penalty=params['penalty'],
+            solver=params['solver'],
+            max_iter=params['max_iter'],
+            class_weight=params['class_weight'],
+            fit_intercept=params['fit_intercept'],
+            tol=params['tol'],
+            random_state=42
+        )
+            model.fit(X_train,y_train.squeeze())
         return model
     
     elif model_type == 'graph':

@@ -82,7 +82,7 @@ class PopulationGAT(nn.Module):
             hidden_size=hidden_dim,
             batch_first=True,
             num_layers= 1,
-            bidirectional= True
+            bidirectional= False
         )
 
         # GCN
