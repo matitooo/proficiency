@@ -31,8 +31,8 @@ def transform_sense_labels(words, jsonObj):
 
 def create_sense_labels():
     sense_labels_obj = {}
-    for file_name in os.listdir('proficiency/data/senses'):    
-        file_path = 'proficiency/data/senses/' + file_name
+    for file_name in os.listdir('./data/senses'):    
+        file_path = './data/senses/' + file_name
         jsonObj = pd.read_json(path_or_buf=file_path, lines=True)
         num_sentences = len(jsonObj['sentences'][0])
         words = []
@@ -209,6 +209,7 @@ def collate_fn(batch):
     padded_batch = pad_sequence(tensors, batch_first=True)
     return (padded_batch, torch.tensor(labels), lengths)
 
+create_sense_labels()
 dataset = SenseDataset()
 train_dataset, test_dataset = random_split(dataset, [0.8, 0.2])
 train_loader = DataLoader(train_dataset, batch_size=32, collate_fn=collate_fn)
