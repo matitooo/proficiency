@@ -2,7 +2,7 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import f1_score,accuracy_score
+from sklearn.metrics import f1_score,accuracy_score,roc_auc_score
 from models.population_gcn import PopulationGCN,PopulationGAT
 from models.sequential_models import BiLSTM,MHAttention
 from models.mixed_models import BiLSTM_GAT_FC,MHAttention_GAT
@@ -31,7 +31,6 @@ def train(model_type,data,params):
                 learning_rate_init=params['lr'],
                 max_iter=params['n_epochs'],
                 alpha=params['weight_decay'],
-                batch_size=params['batch_size'],
                 random_state=42,
                 early_stopping=True,
                 validation_fraction=0.1,
@@ -43,9 +42,7 @@ def train(model_type,data,params):
                 max_depth=params['max_depth'],
                 min_samples_leaf=params['min_samples_leaf'],
                 min_samples_split=params['min_samples_split'],
-                max_features=params['max_features'],
                 criterion=params['criterion'],
-                class_weight=params['class_weight'],
                 random_state=42
             )
         
@@ -56,8 +53,6 @@ def train(model_type,data,params):
                 min_samples_leaf=params['min_samples_leaf'],
                 min_samples_split=params['min_samples_split'],
                 max_features=params['max_features'],
-                bootstrap=params['bootstrap'],
-                class_weight=params['class_weight'],
                 random_state=42,
                 n_jobs=-1
             )
@@ -68,9 +63,6 @@ def train(model_type,data,params):
             penalty=params['penalty'],
             solver=params['solver'],
             max_iter=params['max_iter'],
-            class_weight=params['class_weight'],
-            fit_intercept=params['fit_intercept'],
-            tol=params['tol'],
             random_state=42
         )
         
@@ -223,10 +215,16 @@ def test(model_type,model,data):
         X_train,X_test,y_train,y_test = data
         model_type = type(model).__name__
         preds = model.predict(X_test)
-        acc = accuracy_score(y_test,preds)
-        f1 = f1_score(y_test,preds,average='macro')
-        print(f"Model Name : {model_type} Accuracy : {acc:.3f} F1 : {f1:.3f}")
-        scores = {'acc':acc,'f1':f1}
+        acc = accuracy_score(y_test, preds)
+        f1_micro = f1_score(y_test, preds, average='micro')
+        f1_macro = f1_score(y_test, preds, average='macro')
+        f1_weighted = f1_score(y_test, preds, average='weighted')
+        scores = {
+            'f1_micro': f1_micro,
+            'f1_macro': f1_macro,
+            'f1_weighted': f1_weighted,
+            'accuracy': acc
+        }
         return scores
     
     elif model_type == 'graph':
@@ -239,8 +237,15 @@ def test(model_type,model,data):
             preds = preds[data.test_mask].cpu().numpy()
 
             acc = accuracy_score(y_test, preds)
-            f1 = f1_score(y_test, preds, average='macro')
-            scores = {'acc':acc,'f1':f1}
+            f1_micro = f1_score(y_test, preds, average='micro')
+            f1_macro = f1_score(y_test, preds, average='macro')
+            f1_weighted = f1_score(y_test, preds, average='weighted')
+            scores = {
+                'f1_micro': f1_micro,
+                'f1_macro': f1_macro,
+                'f1_weighted': f1_weighted,
+                'accuracy': acc
+            }
         return scores
     
     elif model_type=='sequential':

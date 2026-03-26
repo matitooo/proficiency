@@ -10,6 +10,8 @@ from sklearn.preprocessing import LabelEncoder,StandardScaler
 from torch.utils.data import  DataLoader
 from text_embedding_utils import SenseDataset,collate_fn
 from torch.utils.data import random_split
+from model_utils import train,test
+import optuna
 
 
 def params_extraction():
@@ -228,3 +230,101 @@ def generate_model_sweeps(param_grids):
 
 
 
+def sweep_params_gen(model_name):
+    if model_name == 'MLP':
+        sweep = {
+            'lr': [0.001, 0.005, 0.01],
+            'n_epochs': [50, 100],
+            'hidden_size': [64, 128, 256],
+            'weight_decay': [0.0, 0.005, 0.01],
+            'activation': ['relu', 'tanh']
+        }
+
+    if model_name == 'DecisionTree':
+        sweep = {
+            'max_depth': [3, 5, 10, None],
+            'min_samples_split': [2, 5, 10],
+            'min_samples_leaf': [1, 2, 5],
+            'criterion': ['gini', 'entropy']
+        }
+
+    if model_name == 'RandomForest':
+        sweep = {
+            'n_estimators': [100, 500, 1000],
+            'max_depth': [None, 10, 20],
+            'min_samples_split': [2, 10, 20],
+            'min_samples_leaf': [1, 2, 5],
+            'max_features': ['sqrt', 'log2', None]
+        }
+
+    if model_name == 'Logreg':
+        sweep = {
+            'C': [0.1, 1.0, 5.0, 10.0],
+            'penalty': ['l1', 'l2'],
+            'solver': ['saga', 'liblinear'],
+            'max_iter': [500, 1000, 2000]
+        }
+
+    if model_name == 'GCN':
+        sweep = {
+            'hidden_size': [64, 128, 256],
+            'lr': [0.001, 0.005, 0.01],
+            'n_epochs': [20, 50, 100],
+            'embed_dim': [8, 16, 32]
+        }
+
+    if model_name == 'GAT':
+        sweep = {
+            'hidden_size': [128, 256, 512],
+            'lr': [0.001, 0.005, 0.01],
+            'n_epochs': [20, 50, 100],
+            'embed_dim': [16, 32, 64]
+        }
+
+    if model_name == 'BiLSTM':
+        sweep = {
+            'input_size': [60],
+            'hidden_size': [32, 64, 128],
+            'num_classes': [6],
+            'num_layers': [1, 2, 3],
+            'lr': [0.001, 0.005, 0.01],
+            'n_epochs': [10, 20, 50]
+        }
+
+    if model_name == 'MHAttention':
+        sweep = {
+            'input_size': [60],
+            'hidden_size': [32, 64, 128],
+            'num_classes': [6],
+            'lr': [0.001, 0.005, 0.01],
+            'n_epochs': [10, 20, 50]
+        }
+
+    if model_name == 'BiLSTM_GAT_FC':
+        sweep = {
+            'input_size': [60],
+            'lstm_hidden_size': [32, 64],
+            'lstm_layers': [1, 2],
+            'gat_hidden_size': [4, 8, 16],
+            'gat_heads': [2, 4, 8],
+            'num_classes': [6],
+            'lr': [0.001, 0.005],
+            'n_epochs': [1, 5, 10]
+        }
+    return sweep
+
+
+def create_study_for_model(model_type,data,model_name,sweep_params):
+
+    def objective(trial):
+        suggested_params = {}
+        for param, values in sweep_params.items():
+            suggested_params[param] = trial.suggest_categorical(param, values)
+        
+        suggested_params['model_name'] = model_name
+        trained_model = train(model_type,data,suggested_params)
+        scores = test(model_type,trained_model,data)
+        return scores['f1_micro']
+
+    study = optuna.create_study(direction='maximize', study_name=f"{model_name}_study")
+    return study, objective

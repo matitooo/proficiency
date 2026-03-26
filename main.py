@@ -1,4 +1,4 @@
-from utils import params_extraction,data_preprocessing,generate_model_sweeps
+from utils import params_extraction,data_preprocessing,sweep_params_gen,create_study_for_model
 from model_utils import train,test
 import pandas as pd
 import ast
@@ -6,6 +6,8 @@ import yaml
 from tqdm import tqdm
 from itertools import product
 import argparse
+import optuna
+
 
 def train_mode(model_type):
     with open('config/train_config.yaml', "r") as f:
@@ -26,29 +28,33 @@ def train_mode(model_type):
         
 
 def sweep_mode(model_type):
+    with open('config/train_config.yaml', "r") as f:
+        train_config = yaml.load(f, Loader=yaml.SafeLoader)
+    models_dict = train_config[model_type]
+    models_list = models_dict.keys()
     params = params_extraction()
-    with open('config/sweep_config.yaml', "r") as f:
-        sweep_config = yaml.load(f, Loader=yaml.SafeLoader)
-        sweep_config = sweep_config[model_type]
-        
-    combinations = generate_model_sweeps(sweep_config)  
-    df = pd.DataFrame()
-    rows = []
     data = data_preprocessing(model_type,params,dataset)
-    for m, configs in combinations.items():
-        print(f"Now tuning {m}")
-        for sweep_params in tqdm(configs):
-            sweep_params['model_name'] = m
-            trained_model = train(model_type,data,sweep_params)
-            acc,f1 = test(model_type,trained_model,data)
-            sweep_params['Test Accuracy'] = acc
-            sweep_params['Test F1'] = f1
-            row = {"model": m}
-            row.update(sweep_params)
-            rows.append(row)
-        
-    df = pd.DataFrame(rows)
-    pd.DataFrame.to_csv(df,'results/results_'+model_type+'.csv')
+    results = []
+    for model in models_list:
+        print(f"Now training {model}")
+        sweep_params = sweep_params_gen(model)
+        study, objective = create_study_for_model(model_type,data,model,sweep_params)
+        study.optimize(objective, n_trials=20)  
+
+        best_trial = study.best_trial
+        best_params = best_trial.params
+        best_value = best_trial.value
+        print(f"Best params for {model}: {best_params} -> Score: {best_value}")
+
+        results.append({
+            'model': model,
+            'best_score': best_value,
+            'params' : best_params
+        })
+
+    df_results = pd.DataFrame(results)
+    df_results.to_csv(f'best_params_{model_type}.csv', index=False)
+    print(f"Best parameters saved to best_params_{model_type}.csv")
 
 
 if __name__ == "__main__":

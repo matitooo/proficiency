@@ -8,8 +8,7 @@ from torch.utils.data import Dataset
 from torch.nn.utils.rnn import pad_sequence
 import gensim.downloader
 
-glove_vectors = gensim.downloader.load('glove-twitter-25')
-glove_vocab = set(glove_vectors.key_to_index)
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def transform_sense_labels(words, jsonObj):
@@ -83,6 +82,8 @@ def generate_word_list(file_name):
     return words
 
 def create_data():
+    glove_vectors = gensim.downloader.load('glove-twitter-25')
+    glove_vocab = set(glove_vectors.key_to_index)
     grade_to_int = {'A1': 0, 'A2': 1, 'B1': 2, 'B2': 3, 'C1': 4, 'C2': 5}
     multihot_dict = {}
     with open('sense_labels.json', 'r') as f:

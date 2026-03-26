@@ -5,6 +5,7 @@ linear:
     n_epochs: 50
     hidden_size: 128
     weight_decay: 0.005
+    activation: relu
 
   DecisionTree:
     model_name: DecisionTree
