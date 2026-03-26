@@ -5,7 +5,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score,accuracy_score
 from models.population_gcn import PopulationGCN,PopulationGAT
 from models.sequential_models import BiLSTM,MHAttention
-from models.mixed_models import BiLSTM_GAT_FC
+from models.mixed_models import BiLSTM_GAT_FC,MHAttention_GAT
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -118,14 +118,14 @@ def train(model_type,data,params):
     elif model_type == 'mixed':
         model_name= params['model_name']
         input_size = params['input_size']
-        lstm_hidden_size = params['lstm_hidden_size']
-        lstm_layers = params['lstm_layers']
         gat_hidden_size = params['gat_hidden_size']
         gat_heads = params['gat_heads']
         num_classes = params['num_classes']
-        n_epochs = params['n_epochs']
+        num_epochs = params['n_epochs']
         lr = params['lr']
         if model_name == 'BiLSTM_GAT_FC':
+            lstm_hidden_size = params['lstm_hidden_size']
+            lstm_layers = params['lstm_layers']
             model = BiLSTM_GAT_FC(input_size, lstm_hidden_size, lstm_layers, gat_hidden_size, num_classes, gat_heads)
             device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
             model = model.to(device)
@@ -133,12 +133,19 @@ def train(model_type,data,params):
             criterion = nn.CrossEntropyLoss()
             optimizer = optim.Adam(model.parameters(), lr= lr)  
             model.train()
+        
+        elif model_name == 'MHAttention_GAT':
+            attn_hidden_size = params['attn_hidden_size']
+            num_heads = params['num_heads']
+            dropout = params['dropout']
+            model = MHAttention_GAT(input_size, attn_hidden_size, gat_hidden_size, num_classes, num_heads, gat_heads, dropout)
+            optimizer = optim.Adam(model.parameters(), lr= lr)  
+            model.train()
+        
         prev_loss = 0
         for epoch in tqdm(range(num_epochs)):
             model.train()
             optimizer.zero_grad()
-
-            
             out = model(data)
             loss = criterion(
                 out[data.train_mask],
@@ -258,6 +265,25 @@ def test(model_type,model,data):
             'accuracy': accuracy_score(ys, y_preds)
         }
 
+        return scores
+    
+    elif model_type == 'mixed':
+        model.eval()
+        with torch.no_grad():
+            y_logits = model(data)
+            y_pred = torch.argmax(y_logits, dim=1)
+            
+            test_mask = data.test_mask
+            y_preds = y_pred[test_mask].cpu().numpy()
+            ys = data.y[test_mask].cpu().numpy()
+            
+            scores = {
+                'f1_micro': f1_score(ys, y_preds, average='micro'),
+                'f1_macro': f1_score(ys, y_preds, average='macro'),
+                'f1_weighted': f1_score(ys, y_preds, average='weighted'),
+                'accuracy': accuracy_score(ys, y_preds)
+            }
+            
         return scores
   
 
