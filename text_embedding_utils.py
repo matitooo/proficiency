@@ -62,7 +62,7 @@ def transform_sense_multihot(labels, vocab):
     multihot[rows, cols] = 1.0
     return multihot
 
-def generate_word_embeddings(word_list):
+def generate_word_embeddings(word_list,glove_vocab,glove_vectors):
     words_lower = [w.lower() for w in word_list]
     embeddings = np.zeros((len(words_lower), glove_vectors.vector_size), dtype=np.float32)
     for i, word in enumerate(words_lower):
@@ -95,7 +95,7 @@ def create_data():
     for file_name in os.listdir('./data/senses'):
         id = file_name.split('.')[0]
         words = generate_word_list(file_name)
-        word_embeddings_dict[id] = generate_word_embeddings(words)
+        word_embeddings_dict[id] = generate_word_embeddings(words,glove_vocab,glove_vectors)
     y = {}
     df = pd.read_csv('./data/celva_18_23.csv')
     for ind, row in df.iterrows():
