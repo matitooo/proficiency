@@ -54,6 +54,89 @@ def data_preprocessing(model_name,params,dataset):
         test_loader = DataLoader(test_dataset, batch_size=32, collate_fn=collate_fn)
         return [train_loader,test_loader]
     
+    elif model_name == 'mixed':
+
+        sense_dataset = SenseDataset()
+        data_list = sense_dataset.data   # [id, tensor(L,d), label]
+
+        # mapping id → features / label
+        id_to_tensor = {instance[0]: instance[1] for instance in data_list}
+        id_to_label  = {instance[0]: instance[2] for instance in data_list}
+        
+    
+        ordered_ids = dataset['pseudo'].values
+
+        tensors = []
+        labels  = []
+
+        for i in ordered_ids:
+            tensors.append(id_to_tensor[i])
+            labels.append(id_to_label[i])
+
+        padded = pad_sequence(tensors, batch_first=True)   # (N, L, d)
+        lengths = torch.tensor([t.shape[0] for t in tensors])
+        y_tensor = torch.stack(labels)
+
+        columns = params['columns']
+        columns_categorical = columns['categorical']
+        columns_numerical   = columns['numerical']
+        columns_binary      = columns['binary']
+
+        graph_columns = params['graph_columns']
+        threshold = params['threshold']
+
+        n_examples = len(tensors)
+
+        adjacency = np.zeros((n_examples, n_examples))
+        n_features = len(graph_columns)
+
+        for column in graph_columns:
+            values = dataset[column].values
+
+            if column in columns_categorical or column in columns_binary:
+                adjacency += (values[:, None] == values[None, :]).astype(float)
+
+            elif column in columns_numerical:
+                adjacency += 1 / (1 + np.abs(values[:, None] - values[None, :]))
+
+        np.fill_diagonal(adjacency, 0)
+
+        adjacency = adjacency / n_features
+        adjacency[adjacency < threshold] = 0
+        
+        adj_tensor = torch.tensor(adjacency, dtype=torch.float)
+
+        edge_index = adj_tensor.nonzero(as_tuple=False).t().contiguous()
+        edge_weight = adj_tensor[adj_tensor != 0]
+
+        N = y_tensor.size(0)
+        indices = np.arange(N)
+
+        train_idx, test_idx = train_test_split(
+            indices,
+            test_size=0.3,
+            stratify=y_tensor.numpy(),
+            random_state=42
+        )
+
+        train_mask = torch.zeros(N, dtype=torch.bool)
+        test_mask  = torch.zeros(N, dtype=torch.bool)
+
+        train_mask[train_idx] = True
+        test_mask[test_idx] = True
+
+        data = Data(
+            x=padded,              
+            lengths=lengths,       
+            y=y_tensor,
+            edge_index=edge_index,
+            edge_weight=edge_weight,
+            train_mask=train_mask,
+            test_mask=test_mask
+        )
+
+        return data
+    
     elif model_name == 'graph':
         #graph creation 
         columns = params['columns']

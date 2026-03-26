@@ -5,6 +5,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score,accuracy_score
 from models.population_gcn import PopulationGCN,PopulationGAT
 from models.sequential_models import BiLSTM,MHAttention
+from models.mixed_models import BiLSTM_GAT_FC
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -114,7 +115,46 @@ def train(model_type,data,params):
             print(f"Epoch {epoch+1}, Loss: {avg_loss:.4f}", end="\r")
         return model
         
-    
+    elif model_type == 'mixed':
+        model_name= params['model_name']
+        input_size = params['input_size']
+        lstm_hidden_size = params['lstm_hidden_size']
+        lstm_layers = params['lstm_layers']
+        gat_hidden_size = params['gat_hidden_size']
+        gat_heads = params['gat_heads']
+        num_classes = params['num_classes']
+        n_epochs = params['n_epochs']
+        lr = params['lr']
+        if model_name == 'BiLSTM_GAT_FC':
+            model = BiLSTM_GAT_FC(input_size, lstm_hidden_size, lstm_layers, gat_hidden_size, num_classes, gat_heads)
+            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            model = model.to(device)
+            data = data.to(device)
+            criterion = nn.CrossEntropyLoss()
+            optimizer = optim.Adam(model.parameters(), lr= lr)  
+            model.train()
+        prev_loss = 0
+        for epoch in tqdm(range(num_epochs)):
+            model.train()
+            optimizer.zero_grad()
+
+            
+            out = model(data)
+            loss = criterion(
+                out[data.train_mask],
+                data.y[data.train_mask]
+            )
+            if abs(prev_loss-loss.item()) < 0.0001:
+                break 
+            else:
+                prev_loss = loss.item()
+                loss.backward()
+                optimizer.step()
+            if epoch%10 == 0:
+                print(f"Epoch {epoch+1}/{num_epochs} | Loss: {loss.item():.4f}")
+
+        return model
+
     elif model_type == 'graph':
         model_name = params['model_name']
         num_categories = 12           

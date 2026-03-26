@@ -70,3 +70,15 @@ sequential:
     num_classes: 6
     n_epochs: 10
     lr: 0.001
+
+mixed:
+  BiLSTM_GAT_FC:
+    model_name: BiLSTM_GAT_FC
+    input_size: 60
+    lstm_hidden_size: 32
+    lstm_layers: 2
+    gat_hidden_size: 4
+    gat_heads: 4
+    num_classes: 6
+    n_epochs: 10
+    lr: 0.001

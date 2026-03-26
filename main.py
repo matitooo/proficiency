@@ -59,7 +59,7 @@ if __name__ == "__main__":
     parser.add_argument('--sweep', action='store_true',
                         help="Find the best Hyperparameters configuration")
 
-    parser.add_argument('--model', type=str, choices=["linear", "graph","sequential"],
+    parser.add_argument('--model', type=str, choices=["linear", "graph","sequential","mixed"],
                         required=True,
                         help="Select model type: Linear or Graph")
 
