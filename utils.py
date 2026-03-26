@@ -7,6 +7,9 @@ from torch.nn.utils.rnn import pad_sequence
 from torch_geometric.data import Data
 from itertools import product
 from sklearn.preprocessing import LabelEncoder,StandardScaler
+from torch.utils.data import  DataLoader
+from text_embedding_utils import SenseDataset,collate_fn
+from torch.utils.data import random_split
 
 
 def params_extraction():
@@ -42,6 +45,14 @@ def data_preprocessing(model_name,params,dataset):
         X_train[columns_numerical] = scaler.fit_transform(X_train[columns_numerical])
         X_test[columns_numerical] = scaler.transform(X_test[columns_numerical])
         return X_train,X_test,y_train,y_test
+    
+    
+    elif model_name =='sequential':
+        dataset = SenseDataset()
+        train_dataset, test_dataset = random_split(dataset, [0.8, 0.2])
+        train_loader = DataLoader(train_dataset, batch_size=32, collate_fn=collate_fn)
+        test_loader = DataLoader(test_dataset, batch_size=32, collate_fn=collate_fn)
+        return [train_loader,test_loader]
     
     elif model_name == 'graph':
         #graph creation 

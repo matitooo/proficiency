@@ -4,10 +4,15 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score,accuracy_score
 from models.population_gcn import PopulationGCN,PopulationGAT
+from models.sequential_models import BiLSTM,MHAttention
 import torch
 import torch.nn as nn
 import torch.optim as optim
 import numpy as np
+from tqdm import tqdm
+
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def train(model_type,data,params):
     
@@ -71,6 +76,45 @@ def train(model_type,data,params):
         model.fit(X_train,y_train.squeeze())
         return model
     
+    elif model_type =='sequential':
+        train_loader,test_loader = data
+        model_name = params['model_name']
+        input_size = params['input_size']
+        hidden_size = params['hidden_size']
+        num_classes = params['num_classes']
+        num_epochs = params['n_epochs']
+        lr = params['lr']
+        if model_name == 'BiLSTM':
+            num_layers = params['num_layers']
+            model = BiLSTM(input_size=input_size, hidden_size=hidden_size, num_layers=num_layers, num_classes=num_classes)
+        elif model_name=='MHAttention':
+            model = MHAttention(input_size=input_size, hidden_size=hidden_size, num_classes=num_classes)
+        criterion = nn.CrossEntropyLoss()
+        optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        model.to(device)
+        model.train()
+        avg_loss_old = 0
+        for epoch in tqdm(range(num_epochs)):
+            total_loss = 0
+            for x, y, x_lengths in train_loader:
+                x = x.to(device)
+                y = y.to(device)
+                optimizer.zero_grad()
+                outputs = model(x,x_lengths)
+                loss = criterion(outputs, y)
+                loss.backward()
+                optimizer.step()
+                total_loss += loss.item()
+            avg_loss = total_loss / len(train_loader)
+            if abs(avg_loss_old-avg_loss) < 0.0001:
+                break 
+            else:
+                avg_loss_old = avg_loss
+            print(f"Epoch {epoch+1}, Loss: {avg_loss:.4f}", end="\r")
+        return model
+        
+    
     elif model_type == 'graph':
         model_name = params['model_name']
         num_categories = 12           
@@ -101,7 +145,7 @@ def train(model_type,data,params):
         model.train()
         num_epochs = params['n_epochs']
     prev_loss = 0
-    for epoch in range(num_epochs):
+    for epoch in tqdm(range(num_epochs)):
         model.train()
         optimizer.zero_grad()
 
@@ -117,10 +161,12 @@ def train(model_type,data,params):
             prev_loss = loss.item()
             loss.backward()
             optimizer.step()
-        # if epoch%10 == 0:
-        #     print(f"Epoch {epoch+1}/{num_epochs} | Loss: {loss.item():.4f}")
+        if epoch%10 == 0:
+            print(f"Epoch {epoch+1}/{num_epochs} | Loss: {loss.item():.4f}")
 
     return model
+
+    
 
 
         
@@ -133,7 +179,8 @@ def test(model_type,model,data):
         acc = accuracy_score(y_test,preds)
         f1 = f1_score(y_test,preds,average='macro')
         print(f"Model Name : {model_type} Accuracy : {acc:.3f} F1 : {f1:.3f}")
-        return acc,f1
+        scores = {'acc':acc,'f1':f1}
+        return scores
     
     elif model_type == 'graph':
         model.eval()
@@ -146,5 +193,31 @@ def test(model_type,model,data):
 
             acc = accuracy_score(y_test, preds)
             f1 = f1_score(y_test, preds, average='macro')
-            # print(f"Accuracy : {acc:.3f} F1 : {f1:.3f}")
-        return acc,f1
+            scores = {'acc':acc,'f1':f1}
+        return scores
+    
+    elif model_type=='sequential':
+        train_loader,test_loader = data
+        y_preds = np.empty(0)
+        ys = np.empty(0)
+        for i, (x, y, x_lengths) in enumerate(test_loader):
+            x = x.to(device)
+            y = y.to(device)
+            y_logits = model(x,x_lengths)
+            y_pred = torch.argmax(y_logits, dim=1)
+            if i == 0:
+                y_preds = y_pred.cpu().numpy()
+                ys = y.cpu().numpy()
+            else:
+                y_preds = np.concatenate((y_preds, y_pred.cpu().numpy()))
+                ys = np.concatenate((ys, y.cpu().numpy()))
+        scores = {
+            'f1_micro': f1_score(ys, y_preds, average='micro'),
+            'f1_macro': f1_score(ys, y_preds, average='macro'),
+            'f1_weighted': f1_score(ys, y_preds, average='weighted'),
+            'accuracy': accuracy_score(ys, y_preds)
+        }
+
+        return scores
+  
+

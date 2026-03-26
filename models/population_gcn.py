@@ -86,11 +86,11 @@ class PopulationGAT(nn.Module):
         )
 
         # GCN
-        self.gat1 = tg.GATConv(hidden_dim*2, hidden_dim*2)
-        self.gat2 = tg.GATConv(hidden_dim*2, hidden_dim*2)
+        self.gat1 = tg.GATConv(hidden_dim, hidden_dim)
+        self.gat2 = tg.GATConv(hidden_dim, hidden_dim)
 
         # Classifier
-        self.fc = nn.Linear(hidden_dim*2, out_dim)
+        self.fc = nn.Linear(hidden_dim, out_dim)
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

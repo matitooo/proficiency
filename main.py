@@ -20,7 +20,7 @@ def train_mode(model_type):
             params[p] =model_config[p]
         data = data_preprocessing(model_type,params,dataset)
         trained_model = train(model_type,data,params)
-        acc,f1 = test(model_type,trained_model,data)
+        # acc,f1 = test(model_type,trained_model,data)
 
         
 
@@ -58,7 +58,7 @@ if __name__ == "__main__":
     parser.add_argument('--sweep', action='store_true',
                         help="Find the best Hyperparameters configuration")
 
-    parser.add_argument('--model', type=str, choices=["linear", "graph"],
+    parser.add_argument('--model', type=str, choices=["linear", "graph","sequential"],
                         required=True,
                         help="Select model type: Linear or Graph")
 
