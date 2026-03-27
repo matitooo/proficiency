@@ -18,13 +18,13 @@ class BiLSTM_GAT_FC(nn.Module):
         
         # 🔹 GAT
         self.gat1 = GATConv(lstm_hidden_size*2, gat_hidden_size, heads=gat_heads, concat=True)
-        self.gat2 = GATConv(gat_hidden_size*gat_heads, gat_hidden_size, heads=1, concat=True)
+        self.gat2 = GATConv(gat_hidden_size*gat_heads, gat_hidden_size, heads=gat_heads, concat=True)
         self.dropout = nn.Dropout(p=dropout)
         
         self.relu = nn.ReLU()
         
         # 🔹 FC finale per predizione
-        self.fc = nn.Linear(gat_hidden_size, num_classes)
+        self.fc = nn.Linear(gat_hidden_size*gat_heads, num_classes)
         
     def forward(self, data):
         x, lengths = data.x, data.lengths
