@@ -51,13 +51,12 @@ def data_preprocessing(model_name,params,dataset):
     
     
     elif model_name =='sequential':
-        train_dataset, test_dataset = random_split(dataset, [0.8, 0.2])
+        train_dataset, test_dataset = random_split(sense_dataset, [0.8, 0.2])
         train_loader = DataLoader(train_dataset, batch_size=32, collate_fn=collate_fn)
         test_loader = DataLoader(test_dataset, batch_size=32, collate_fn=collate_fn)
         return [train_loader,test_loader]
     
     elif model_name == 'mixed':
-
         data_list = sense_dataset.data   # [id, tensor(L,d), label]
 
         # mapping id → features / label
