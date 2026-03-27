@@ -32,15 +32,15 @@ def sweep_mode(model_type):
         train_config = yaml.load(f, Loader=yaml.SafeLoader)
     models_dict = train_config[model_type]
     models_list = models_dict.keys()
-    params = params_extraction()
-    data = data_preprocessing(model_type,params,dataset)
+    dataset = pd.read_csv('data/data.csv')
+    
     results = []
     for model in models_list:
         print(f"Now training {model}")
         sweep_params = sweep_params_gen(model)
-        study, objective = create_study_for_model(model_type,data,model,sweep_params)
-        study.optimize(objective, n_trials=20)  
-
+        study, objective = create_study_for_model(model_type,dataset,model,sweep_params)
+        n_trials = 20 if model_type == 'linear' else 50
+        study.optimize(objective, n_trials=n_trials) 
         best_trial = study.best_trial
         best_params = best_trial.params
         best_value = best_trial.value

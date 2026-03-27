@@ -4,16 +4,16 @@ from torch.nn.utils.rnn import pack_padded_sequence
 
 
 class BiLSTM(nn.Module):
-    def __init__(self, input_size, hidden_size, num_layers, num_classes):
+    def __init__(self, input_size, lstm_hidden_size, num_layers, num_classes):
         super().__init__()
         self.lstm = nn.LSTM(
             input_size,
-            hidden_size,
+            lstm_hidden_size,
             num_layers=num_layers,
             batch_first=True,
             bidirectional=True
         )
-        self.fc = nn.Linear(hidden_size * 2, num_classes)
+        self.fc = nn.Linear(lstm_hidden_size * 2, num_classes)
 
     def forward(self, x, x_lengths):
         x_packed = pack_padded_sequence(x, x_lengths, batch_first=True, enforce_sorted=False)

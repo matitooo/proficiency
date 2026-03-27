@@ -5,7 +5,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score,accuracy_score,roc_auc_score
 from models.population_gcn import PopulationGCN,PopulationGAT
 from models.sequential_models import BiLSTM,MHAttention
-from models.mixed_models import BiLSTM_GAT_FC,MHAttention_GAT
+from models.mixed_models import BiLSTM_GAT_FC
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -15,14 +15,15 @@ from tqdm import tqdm
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-def train(model_type,data,params):
-    
+def train(model_type, data, params):
+
+    # Linear models
     if model_type == 'linear':
-        X_train,X_test,y_train,y_test = data
-        y_train = y_train.astype(np.int64) 
-        linear_model = params['model_name']
-        
-        if linear_model == 'MLP':
+        X_train, X_test, y_train, y_test = data
+        y_train = y_train.astype(np.int64)
+        model_name = params['model_name']
+
+        if model_name == 'MLP':
             model = MLPClassifier(
                 hidden_layer_sizes=(params['hidden_size'],),
                 activation=params['activation'],
@@ -37,174 +38,221 @@ def train(model_type,data,params):
                 n_iter_no_change=10,
                 tol=1e-4
             )
-        elif linear_model == 'DecisionTree':
+
+        elif model_name == 'DecisionTree':
             model = DecisionTreeClassifier(
                 max_depth=params['max_depth'],
-                min_samples_leaf=params['min_samples_leaf'],
                 min_samples_split=params['min_samples_split'],
+                min_samples_leaf=params['min_samples_leaf'],
                 criterion=params['criterion'],
                 random_state=42
             )
-        
-        elif linear_model == 'RandomForest':
+
+        elif model_name == 'RandomForest':
             model = RandomForestClassifier(
                 n_estimators=params['n_estimators'],
                 max_depth=params['max_depth'],
-                min_samples_leaf=params['min_samples_leaf'],
                 min_samples_split=params['min_samples_split'],
+                min_samples_leaf=params['min_samples_leaf'],
                 max_features=params['max_features'],
                 random_state=42,
                 n_jobs=-1
             )
-    
-        elif linear_model == 'Logreg':
+
+        elif model_name == 'Logreg':
             model = LogisticRegression(
-            C=params['C'],
-            penalty=params['penalty'],
-            solver=params['solver'],
-            max_iter=params['max_iter'],
-            random_state=42
-        )
-        
-        model.fit(X_train,y_train.squeeze())
+                C=params['C'],
+                penalty=params['penalty'],
+                solver=params['solver'],
+                max_iter=params['max_iter'],
+                random_state=42
+            )
+
+        model.fit(X_train, y_train.squeeze())
         return model
-    
-    elif model_type =='sequential':
-        train_loader,test_loader = data
+
+    # Sequential models
+    elif model_type == 'sequential':
+        train_loader, test_loader = data
         model_name = params['model_name']
+
         input_size = params['input_size']
-        hidden_size = params['hidden_size']
         num_classes = params['num_classes']
         num_epochs = params['n_epochs']
         lr = params['lr']
+        weight_decay = params['weight_decay']
+
         if model_name == 'BiLSTM':
-            num_layers = params['num_layers']
-            model = BiLSTM(input_size=input_size, hidden_size=hidden_size, num_layers=num_layers, num_classes=num_classes)
-        elif model_name=='MHAttention':
-            model = MHAttention(input_size=input_size, hidden_size=hidden_size, num_classes=num_classes)
+            model = BiLSTM(
+                input_size=input_size,
+                hidden_size=params['lstm_hidden_size'],
+                num_layers=params.get('num_layers', 1),
+                num_classes=num_classes
+            )
+
+        elif model_name == 'MHAttention':
+            model = MHAttention(
+                input_size=input_size,
+                hidden_size=params['hidden_size'],
+                num_heads=params['num_heads'],
+                num_classes=num_classes
+            )
+
         criterion = nn.CrossEntropyLoss()
-        optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+        optimizer = torch.optim.Adam(
+            model.parameters(),
+            lr=lr,
+            weight_decay=weight_decay
+        )
+
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         model.to(device)
         model.train()
-        avg_loss_old = 0
+
+        prev_loss = 0
+
         for epoch in tqdm(range(num_epochs)):
             total_loss = 0
+
             for x, y, x_lengths in train_loader:
                 x = x.to(device)
                 y = y.to(device)
+
                 optimizer.zero_grad()
-                outputs = model(x,x_lengths)
+                outputs = model(x, x_lengths)
                 loss = criterion(outputs, y)
                 loss.backward()
                 optimizer.step()
+
                 total_loss += loss.item()
+
             avg_loss = total_loss / len(train_loader)
-            if abs(avg_loss_old-avg_loss) < 0.0001:
-                break 
-            else:
-                avg_loss_old = avg_loss
+
+            if abs(prev_loss - avg_loss) < 1e-4:
+                break
+            prev_loss = avg_loss
+
             print(f"Epoch {epoch+1}, Loss: {avg_loss:.4f}", end="\r")
+
         return model
-        
+
+    # Mixed Models
     elif model_type == 'mixed':
-        model_name= params['model_name']
-        input_size = params['input_size']
-        gat_hidden_size = params['gat_hidden_size']
-        gat_heads = params['gat_heads']
-        num_classes = params['num_classes']
-        num_epochs = params['n_epochs']
-        lr = params['lr']
+        model_name = params['model_name']
+
         if model_name == 'BiLSTM_GAT_FC':
-            lstm_hidden_size = params['lstm_hidden_size']
-            lstm_layers = params['lstm_layers']
-            model = BiLSTM_GAT_FC(input_size, lstm_hidden_size, lstm_layers, gat_hidden_size, num_classes, gat_heads)
-            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-            model = model.to(device)
-            data = data.to(device)
-            criterion = nn.CrossEntropyLoss()
-            optimizer = optim.Adam(model.parameters(), lr= lr)  
-            model.train()
-        
-        elif model_name == 'MHAttention_GAT':
-            attn_hidden_size = params['attn_hidden_size']
-            num_heads = params['num_heads']
-            dropout = params['dropout']
-            model = MHAttention_GAT(input_size, attn_hidden_size, gat_hidden_size, num_classes, num_heads, gat_heads, dropout)
-            optimizer = optim.Adam(model.parameters(), lr= lr)  
-            model.train()
-        
+            model = BiLSTM_GAT_FC(
+                input_size=params['input_size'],
+                lstm_hidden_size=params['lstm_hidden_size'],
+                lstm_layers=params['lstm_layers'],
+                gat_hidden_size=params['gat_hidden_size'],
+                num_classes=params['num_classes'],
+                gat_heads=params['gat_heads'],
+                dropout=params['dropout']
+            )
+
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        model = model.to(device)
+        data = data.to(device)
+
+        criterion = nn.CrossEntropyLoss()
+        optimizer = optim.Adam(
+            model.parameters(),
+            lr=params['lr'],
+            weight_decay=params['weight_decay']
+        )
+
         prev_loss = 0
+        num_epochs = params['n_epochs']
+
         for epoch in tqdm(range(num_epochs)):
             model.train()
             optimizer.zero_grad()
+
             out = model(data)
+
             loss = criterion(
                 out[data.train_mask],
                 data.y[data.train_mask]
             )
-            if abs(prev_loss-loss.item()) < 0.0001:
-                break 
-            else:
-                prev_loss = loss.item()
-                loss.backward()
-                optimizer.step()
-            if epoch%10 == 0:
+
+            if abs(prev_loss - loss.item()) < 1e-4:
+                break
+
+            prev_loss = loss.item()
+            loss.backward()
+            optimizer.step()
+
+            if epoch % 10 == 0:
                 print(f"Epoch {epoch+1}/{num_epochs} | Loss: {loss.item():.4f}")
 
         return model
 
+    # Graph Models
     elif model_type == 'graph':
         model_name = params['model_name']
-        num_categories = 12           
+
+        num_categories = 12
         embed_dim = params['embed_dim']
         hidden_dim = params['hidden_size']
-        out_dim = torch.max(data.y)
+        dropout = params['dropout']
+        out_dim = torch.max(data.y).item() + 1
+
         if model_name == 'GCN':
             model = PopulationGCN(
-                num_categories=num_categories, 
+                num_categories=num_categories,
                 embed_dim=embed_dim,
                 hidden_dim=hidden_dim,
-                out_dim=out_dim+1
-            )     
+                out_dim=out_dim,
+                dropout=dropout
+            )
+
         elif model_name == 'GAT':
             model = PopulationGAT(
-                num_categories=num_categories, 
+                num_categories=num_categories,
                 embed_dim=embed_dim,
                 hidden_dim=hidden_dim,
-                out_dim=out_dim+1
-            )     
-        criterion = nn.CrossEntropyLoss()
-        optimizer = optim.Adam(model.parameters(), lr=params['lr'])  
-        
+                out_dim=out_dim,
+                heads=params['gat_heads'],
+                dropout=dropout
+            )
+
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         model = model.to(device)
         data = data.to(device)
-        
-        model.train()
-        num_epochs = params['n_epochs']
-    prev_loss = 0
-    for epoch in tqdm(range(num_epochs)):
-        model.train()
-        optimizer.zero_grad()
 
-        
-        out = model(data)
-        loss = criterion(
-            out[data.train_mask],
-            data.y[data.train_mask]
+        criterion = nn.CrossEntropyLoss()
+        optimizer = optim.Adam(
+            model.parameters(),
+            lr=params['lr'],
+            weight_decay=params['weight_decay']
         )
-        if abs(prev_loss-loss.item()) < 0.0001:
-            break 
-        else:
+
+        prev_loss = 0
+        num_epochs = params['n_epochs']
+
+        for epoch in tqdm(range(num_epochs)):
+            model.train()
+            optimizer.zero_grad()
+
+            out = model(data)
+
+            loss = criterion(
+                out[data.train_mask],
+                data.y[data.train_mask]
+            )
+
+            if abs(prev_loss - loss.item()) < 1e-4:
+                break
+
             prev_loss = loss.item()
             loss.backward()
             optimizer.step()
-        if epoch%10 == 0:
-            print(f"Epoch {epoch+1}/{num_epochs} | Loss: {loss.item():.4f}")
 
-    return model
+            if epoch % 10 == 0:
+                print(f"Epoch {epoch+1}/{num_epochs} | Loss: {loss.item():.4f}")
 
+        return model
     
 
 

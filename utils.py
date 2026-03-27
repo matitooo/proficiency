@@ -268,63 +268,122 @@ def sweep_params_gen(model_name):
     if model_name == 'GCN':
         sweep = {
             'hidden_size': [64, 128, 256],
+            'embed_dim': [16, 32,64],
+            'dropout': [0.0,0.1,0.3],
             'lr': [0.001, 0.005, 0.01],
-            'n_epochs': [20, 50, 100],
-            'embed_dim': [8, 16, 32]
+            'weight_decay':[0.01,0.005],
+            'n_epochs': [20, 50, 100,200],
+            'threshold' : [0.5,0.7,0.9],
+            'graph_columns': [
+        ["Years_studying_L2", "Reinforced_section"],
+        ["Years_studying_L2", "Language_exposure"],
+        ["Years_studying_L2", "Reading_frequency"],
+        ["Reinforced_section", "Language_exposure"],
+        ["Reinforced_section", "Reading_frequency"],
+        ["Language_exposure", "Reading_frequency"],
+
+        ["Years_studying_L2", "Reinforced_section", "Language_exposure"],
+        ["Years_studying_L2", "Reinforced_section", "Reading_frequency"],
+        ["Years_studying_L2", "Language_exposure", "Reading_frequency"],
+        ["Reinforced_section", "Language_exposure", "Reading_frequency"],
+
+        ["Years_studying_L2", "Reinforced_section", "Language_exposure", "Reading_frequency"]
+    ]
         }
 
     if model_name == 'GAT':
         sweep = {
-            'hidden_size': [128, 256, 512],
+            'embed_dim': [16, 32, 64],
+            'lstm_hidden_size': [64,128,256],
+            'gat_hidden_size' : [64,128,256],
+            'gat_heads' : [1,2,4],
+            'dropout': [0.0,0.1,0.3],
             'lr': [0.001, 0.005, 0.01],
+            'weight_decay':[0.01,0.005],
             'n_epochs': [20, 50, 100],
-            'embed_dim': [16, 32, 64]
+            'threshold' : [0.5,0.7,0.9],
+            'graph_columns': [
+        ["Years_studying_L2", "Reinforced_section"],
+        ["Years_studying_L2", "Language_exposure"],
+        ["Years_studying_L2", "Reading_frequency"],
+        ["Reinforced_section", "Language_exposure"],
+        ["Reinforced_section", "Reading_frequency"],
+        ["Language_exposure", "Reading_frequency"],
+
+        ["Years_studying_L2", "Reinforced_section", "Language_exposure"],
+        ["Years_studying_L2", "Reinforced_section", "Reading_frequency"],
+        ["Years_studying_L2", "Language_exposure", "Reading_frequency"],
+        ["Reinforced_section", "Language_exposure", "Reading_frequency"],
+
+        ["Years_studying_L2", "Reinforced_section", "Language_exposure", "Reading_frequency"]
+    ]
+            
         }
 
     if model_name == 'BiLSTM':
         sweep = {
-            'input_size': [60],
-            'hidden_size': [32, 64, 128],
-            'num_classes': [6],
-            'num_layers': [1, 2, 3],
+            'lstm_hidden_size': [64,128,256],
             'lr': [0.001, 0.005, 0.01],
-            'n_epochs': [10, 20, 50]
+            'n_epochs': [20, 50, 100,200],
+            'num_classes': [6],
+            'weight_decay':[0.01,0.005]
         }
 
     if model_name == 'MHAttention':
         sweep = {
             'input_size': [60],
-            'hidden_size': [32, 64, 128],
+            'hidden_size': [32, 64, 128,256],
+            'num_heads' : [1,2,4],
             'num_classes': [6],
             'lr': [0.001, 0.005, 0.01],
-            'n_epochs': [10, 20, 50]
+            'n_epochs': [10, 20, 50],
+            'weight_decay':[0.01,0.005]
         }
 
     if model_name == 'BiLSTM_GAT_FC':
-        sweep = {
-            'input_size': [60],
-            'lstm_hidden_size': [32, 64],
-            'lstm_layers': [1, 2],
-            'gat_hidden_size': [4, 8, 16],
-            'gat_heads': [2, 4, 8],
-            'num_classes': [6],
-            'lr': [0.001, 0.005],
-            'n_epochs': [1, 5, 10]
-        }
+       sweep = {
+    'lstm_hidden_size': [64,128,256],
+    'gat_hidden_size' : [64,128,256],
+    'lstm_layers':[1,2],
+    'embed_dim': [16, 32, 64],
+    'gat_heads' : [1,2,4],
+    'dropout': [0.0,0.1,0.3],
+    'num_classes': [6],
+    'lr': [0.001, 0.005, 0.01],
+    'weight_decay':[0.01,0.005],
+    'n_epochs': [20, 50, 100],
+    'threshold' : [0.5,0.7,0.9],
+    'graph_columns': [
+        ["Years_studying_L2", "Reinforced_section"],
+        ["Years_studying_L2", "Language_exposure"],
+        ["Years_studying_L2", "Reading_frequency"],
+        ["Reinforced_section", "Language_exposure"],
+        ["Reinforced_section", "Reading_frequency"],
+        ["Language_exposure", "Reading_frequency"],
+
+        ["Years_studying_L2", "Reinforced_section", "Language_exposure"],
+        ["Years_studying_L2", "Reinforced_section", "Reading_frequency"],
+        ["Years_studying_L2", "Language_exposure", "Reading_frequency"],
+        ["Reinforced_section", "Language_exposure", "Reading_frequency"],
+
+        ["Years_studying_L2", "Reinforced_section", "Language_exposure", "Reading_frequency"]
+    ]
+}
     return sweep
 
 
-def create_study_for_model(model_type,data,model_name,sweep_params):
+def create_study_for_model(model_type,dataset,model_name,sweep_params):
 
     def objective(trial):
-        suggested_params = {}
+        params = params_extraction()
         for param, values in sweep_params.items():
-            suggested_params[param] = trial.suggest_categorical(param, values)
-        
-        suggested_params['model_name'] = model_name
-        trained_model = train(model_type,data,suggested_params)
+            params[param] = trial.suggest_categorical(param, values)
+        data = data_preprocessing(model_type,params,dataset)
+        params['model_name'] = model_name
+        trained_model = train(model_type,data,params)
         scores = test(model_type,trained_model,data)
         return scores['f1_micro']
+        return 1
 
     study = optuna.create_study(direction='maximize', study_name=f"{model_name}_study")
     return study, objective
