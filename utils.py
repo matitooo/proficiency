@@ -342,6 +342,7 @@ def sweep_params_gen(model_name):
 
     if model_name == 'BiLSTM_GAT_FC':
        sweep = {
+    'input_size': [80],
     'lstm_hidden_size': [64,128,256],
     'gat_hidden_size' : [64,128,256],
     'lstm_layers':[1,2],
