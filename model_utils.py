@@ -215,7 +215,7 @@ def train(model_type, data, params):
                 lstm_hidden_size=lstm_hidden_size,
                 gat_hidden_size=params['gat_hidden_size'],
                 out_dim=out_dim,
-                heads=params['gat_heads'],
+                gat_heads=params['gat_heads'],
                 dropout=dropout
             )
 
