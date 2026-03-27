@@ -326,7 +326,8 @@ def sweep_params_gen(model_name):
             'lr': [0.001, 0.005, 0.01],
             'n_epochs': [20, 50, 100,200],
             'num_classes': [6],
-            'weight_decay':[0.01,0.005]
+            'weight_decay':[0.01,0.005],
+            'input_size': [60]
         }
 
     if model_name == 'MHAttention':
@@ -385,7 +386,6 @@ def create_study_for_model(model_type,dataset,model_name,sweep_params):
         trained_model = train(model_type,data,params)
         scores = test(model_type,trained_model,data)
         return scores['f1_micro']
-        return 1
 
     study = optuna.create_study(direction='maximize', study_name=f"{model_name}_study")
     return study, objective
