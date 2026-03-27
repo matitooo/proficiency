@@ -275,20 +275,20 @@ def sweep_params_gen(model_name):
             'n_epochs': [20, 50, 100,200],
             'threshold' : [0.5,0.7,0.9],
             'graph_columns': [
-        ["Years_studying_L2", "Reinforced_section"],
-        ["Years_studying_L2", "Language_exposure"],
-        ["Years_studying_L2", "Reading_frequency"],
-        ["Reinforced_section", "Language_exposure"],
-        ["Reinforced_section", "Reading_frequency"],
-        ["Language_exposure", "Reading_frequency"],
+    "Years_studying_L2|Reinforced_section",
+    "Years_studying_L2|Language_exposure",
+    "Years_studying_L2|Reading_frequency",
+    "Reinforced_section|Language_exposure",
+    "Reinforced_section|Reading_frequency",
+    "Language_exposure|Reading_frequency",
 
-        ["Years_studying_L2", "Reinforced_section", "Language_exposure"],
-        ["Years_studying_L2", "Reinforced_section", "Reading_frequency"],
-        ["Years_studying_L2", "Language_exposure", "Reading_frequency"],
-        ["Reinforced_section", "Language_exposure", "Reading_frequency"],
+    "Years_studying_L2|Reinforced_section|Language_exposure",
+    "Years_studying_L2|Reinforced_section|Reading_frequency",
+    "Years_studying_L2|Language_exposure|Reading_frequency",
+    "Reinforced_section|Language_exposure|Reading_frequency",
 
-        ["Years_studying_L2", "Reinforced_section", "Language_exposure", "Reading_frequency"]
-    ]
+    "Years_studying_L2|Reinforced_section|Language_exposure|Reading_frequency"
+]
         }
 
     if model_name == 'GAT':
@@ -303,20 +303,20 @@ def sweep_params_gen(model_name):
             'n_epochs': [20, 50, 100],
             'threshold' : [0.5,0.7,0.9],
             'graph_columns': [
-        ["Years_studying_L2", "Reinforced_section"],
-        ["Years_studying_L2", "Language_exposure"],
-        ["Years_studying_L2", "Reading_frequency"],
-        ["Reinforced_section", "Language_exposure"],
-        ["Reinforced_section", "Reading_frequency"],
-        ["Language_exposure", "Reading_frequency"],
+    "Years_studying_L2|Reinforced_section",
+    "Years_studying_L2|Language_exposure",
+    "Years_studying_L2|Reading_frequency",
+    "Reinforced_section|Language_exposure",
+    "Reinforced_section|Reading_frequency",
+    "Language_exposure|Reading_frequency",
 
-        ["Years_studying_L2", "Reinforced_section", "Language_exposure"],
-        ["Years_studying_L2", "Reinforced_section", "Reading_frequency"],
-        ["Years_studying_L2", "Language_exposure", "Reading_frequency"],
-        ["Reinforced_section", "Language_exposure", "Reading_frequency"],
+    "Years_studying_L2|Reinforced_section|Language_exposure",
+    "Years_studying_L2|Reinforced_section|Reading_frequency",
+    "Years_studying_L2|Language_exposure|Reading_frequency",
+    "Reinforced_section|Language_exposure|Reading_frequency",
 
-        ["Years_studying_L2", "Reinforced_section", "Language_exposure", "Reading_frequency"]
-    ]
+    "Years_studying_L2|Reinforced_section|Language_exposure|Reading_frequency"
+]
             
         }
 
@@ -354,20 +354,20 @@ def sweep_params_gen(model_name):
     'n_epochs': [20, 50, 100],
     'threshold' : [0.5,0.7,0.9],
     'graph_columns': [
-        ["Years_studying_L2", "Reinforced_section"],
-        ["Years_studying_L2", "Language_exposure"],
-        ["Years_studying_L2", "Reading_frequency"],
-        ["Reinforced_section", "Language_exposure"],
-        ["Reinforced_section", "Reading_frequency"],
-        ["Language_exposure", "Reading_frequency"],
+    "Years_studying_L2|Reinforced_section",
+    "Years_studying_L2|Language_exposure",
+    "Years_studying_L2|Reading_frequency",
+    "Reinforced_section|Language_exposure",
+    "Reinforced_section|Reading_frequency",
+    "Language_exposure|Reading_frequency",
 
-        ["Years_studying_L2", "Reinforced_section", "Language_exposure"],
-        ["Years_studying_L2", "Reinforced_section", "Reading_frequency"],
-        ["Years_studying_L2", "Language_exposure", "Reading_frequency"],
-        ["Reinforced_section", "Language_exposure", "Reading_frequency"],
+    "Years_studying_L2|Reinforced_section|Language_exposure",
+    "Years_studying_L2|Reinforced_section|Reading_frequency",
+    "Years_studying_L2|Language_exposure|Reading_frequency",
+    "Reinforced_section|Language_exposure|Reading_frequency",
 
-        ["Years_studying_L2", "Reinforced_section", "Language_exposure", "Reading_frequency"]
-    ]
+    "Years_studying_L2|Reinforced_section|Language_exposure|Reading_frequency"
+]
 }
     return sweep
 
@@ -380,6 +380,8 @@ def create_study_for_model(model_type,dataset,model_name,sweep_params):
             params[param] = trial.suggest_categorical(param, values)
         data = data_preprocessing(model_type,params,dataset)
         params['model_name'] = model_name
+        if 'graph_columns' in sweep_params.keys():
+            params['graph_columns'] = params['graph_columns'].split("|")
         trained_model = train(model_type,data,params)
         scores = test(model_type,trained_model,data)
         return scores['f1_micro']
