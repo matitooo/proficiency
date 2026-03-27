@@ -12,6 +12,7 @@ from text_embedding_utils import SenseDataset,collate_fn
 from torch.utils.data import random_split
 from model_utils import train,test
 import optuna
+import ast
 
 sense_dataset = SenseDataset()
 
@@ -187,8 +188,7 @@ def data_preprocessing(model_name,params,dataset):
 
         train_idx, test_idx = train_test_split(
             indices,
-            test_size=0.3,
-            stratify=y_tensor.numpy(),  
+            test_size=0.3, 
             random_state=42
         )
 
@@ -265,7 +265,8 @@ def sweep_params_gen(model_name):
 
     if model_name == 'GCN':
         sweep = {
-            'hidden_size': [64, 128, 256],
+            'gcn_hidden_size': [64, 128, 256],
+            'lstm_hidden_size': [64, 128, 256],
             'embed_dim': [16, 32,64],
             'dropout': [0.0,0.1,0.3],
             'lr': [0.001, 0.005, 0.01],
@@ -377,10 +378,13 @@ def create_study_for_model(model_type,dataset,model_name,sweep_params):
         params = params_extraction()
         for param, values in sweep_params.items():
             params[param] = trial.suggest_categorical(param, values)
-        data = data_preprocessing(model_type,params,dataset)
-        params['model_name'] = model_name
         if 'graph_columns' in sweep_params.keys():
             params['graph_columns'] = params['graph_columns'].split("|")
+            print(params['graph_columns'])
+        data_copy = dataset.copy(deep=True)
+        data = data_preprocessing(model_type, params, data_copy)
+        params['model_name'] = model_name
+        
         trained_model = train(model_type,data,params)
         scores = test(model_type,trained_model,data)
         return scores['f1_micro']

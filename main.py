@@ -32,7 +32,7 @@ def sweep_mode(model_type):
         train_config = yaml.load(f, Loader=yaml.SafeLoader)
     models_dict = train_config[model_type]
     models_list = models_dict.keys()
-    dataset = pd.read_csv('data/data.csv')
+    
     
     results = []
     for model in models_list:

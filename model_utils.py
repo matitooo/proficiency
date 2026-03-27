@@ -191,18 +191,19 @@ def train(model_type, data, params):
     # Graph Models
     elif model_type == 'graph':
         model_name = params['model_name']
-
         num_categories = 12
         embed_dim = params['embed_dim']
-        hidden_dim = params['hidden_size']
         dropout = params['dropout']
+        lstm_hidden_size = params['lstm_hidden_size']
+        
         out_dim = torch.max(data.y).item() + 1
 
         if model_name == 'GCN':
             model = PopulationGCN(
                 num_categories=num_categories,
                 embed_dim=embed_dim,
-                hidden_dim=hidden_dim,
+                lstm_hidden_size=lstm_hidden_size,
+                gcn_hidden_size=params['gcn_hidden_size'],
                 out_dim=out_dim,
                 dropout=dropout
             )
@@ -211,7 +212,8 @@ def train(model_type, data, params):
             model = PopulationGAT(
                 num_categories=num_categories,
                 embed_dim=embed_dim,
-                hidden_dim=hidden_dim,
+                lstm_hidden_size=lstm_hidden_size,
+                gat_hidden_size=params['gat_hidden_size'],
                 out_dim=out_dim,
                 heads=params['gat_heads'],
                 dropout=dropout
