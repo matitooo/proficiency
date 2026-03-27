@@ -13,6 +13,7 @@ from torch.utils.data import random_split
 from model_utils import train,test
 import optuna
 
+sense_dataset = SenseDataset()
 
 def params_extraction():
     graph_config_path =  "config/graph_config.yaml"
@@ -50,7 +51,6 @@ def data_preprocessing(model_name,params,dataset):
     
     
     elif model_name =='sequential':
-        dataset = SenseDataset()
         train_dataset, test_dataset = random_split(dataset, [0.8, 0.2])
         train_loader = DataLoader(train_dataset, batch_size=32, collate_fn=collate_fn)
         test_loader = DataLoader(test_dataset, batch_size=32, collate_fn=collate_fn)
@@ -58,7 +58,6 @@ def data_preprocessing(model_name,params,dataset):
     
     elif model_name == 'mixed':
 
-        sense_dataset = SenseDataset()
         data_list = sense_dataset.data   # [id, tensor(L,d), label]
 
         # mapping id → features / label
