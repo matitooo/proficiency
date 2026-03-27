@@ -63,8 +63,7 @@ def data_preprocessing(model_name,params,dataset):
         # mapping id → features / label
         id_to_tensor = {instance[0]: instance[1] for instance in data_list}
         id_to_label  = {instance[0]: instance[2] for instance in data_list}
-        
-    
+
         ordered_ids = dataset['pseudo'].values
 
         tensors = []
@@ -87,32 +86,27 @@ def data_preprocessing(model_name,params,dataset):
         threshold = params['threshold']
 
         n_examples = len(tensors)
-
         adjacency = np.zeros((n_examples, n_examples))
         n_features = len(graph_columns)
 
         for column in graph_columns:
             values = dataset[column].values
-
             if column in columns_categorical or column in columns_binary:
                 adjacency += (values[:, None] == values[None, :]).astype(float)
-
             elif column in columns_numerical:
                 adjacency += 1 / (1 + np.abs(values[:, None] - values[None, :]))
 
         np.fill_diagonal(adjacency, 0)
-
         adjacency = adjacency / n_features
         adjacency[adjacency < threshold] = 0
-        
-        adj_tensor = torch.tensor(adjacency, dtype=torch.float)
 
+        adj_tensor = torch.tensor(adjacency, dtype=torch.float)
         edge_index = adj_tensor.nonzero(as_tuple=False).t().contiguous()
         edge_weight = adj_tensor[adj_tensor != 0]
 
+        # Split train/test
         N = y_tensor.size(0)
         indices = np.arange(N)
-
         train_idx, test_idx = train_test_split(
             indices,
             test_size=0.3,
@@ -122,13 +116,13 @@ def data_preprocessing(model_name,params,dataset):
 
         train_mask = torch.zeros(N, dtype=torch.bool)
         test_mask  = torch.zeros(N, dtype=torch.bool)
-
         train_mask[train_idx] = True
         test_mask[test_idx] = True
 
+        # Creazione oggetto Data finale
         data = Data(
-            x=padded,              
-            lengths=lengths,       
+            x=padded,            
+            lengths=lengths,      
             y=y_tensor,
             edge_index=edge_index,
             edge_weight=edge_weight,
@@ -342,7 +336,7 @@ def sweep_params_gen(model_name):
 
     if model_name == 'BiLSTM_GAT_FC':
        sweep = {
-    'input_size': [80],
+    'input_size': [60],
     'lstm_hidden_size': [64,128,256],
     'gat_hidden_size' : [64,128,256],
     'lstm_layers':[1,2],
