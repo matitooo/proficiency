@@ -89,7 +89,7 @@ class PopulationGAT(nn.Module):
 
         # GCN
         self.gat1 = tg.GATConv(lstm_hidden_size*2, gat_hidden_size,heads=gat_heads)
-        self.gat2 = tg.GATConv(gat_hidden_size, gat_hidden_size,heads=gat_heads)
+        self.gat2 = tg.GATConv(gat_hidden_size*gat_heads, gat_hidden_size,heads=gat_heads)
         self.dropout = nn.Dropout(p=dropout)
 
         # Classifier
