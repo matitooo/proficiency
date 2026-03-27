@@ -85,7 +85,7 @@ def train(model_type, data, params):
         if model_name == 'BiLSTM':
             model = BiLSTM(
                 input_size=input_size,
-                hidden_size=params['lstm_hidden_size'],
+               lstm_hidden_size=params['lstm_hidden_size'],
                 num_layers=params.get('num_layers', 1),
                 num_classes=num_classes
             )

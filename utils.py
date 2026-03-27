@@ -322,12 +322,12 @@ def sweep_params_gen(model_name):
 
     if model_name == 'BiLSTM':
         sweep = {
+            'input_size': [60],
+            'num_classes': [6],
             'lstm_hidden_size': [64,128,256],
             'lr': [0.001, 0.005, 0.01],
             'n_epochs': [20, 50, 100,200],
-            'num_classes': [6],
-            'weight_decay':[0.01,0.005],
-            'input_size': [60]
+            'weight_decay':[0.01,0.005]
         }
 
     if model_name == 'MHAttention':
