@@ -93,7 +93,7 @@ class PopulationGAT(nn.Module):
         self.dropout = nn.Dropout(p=dropout)
 
         # Classifier
-        self.fc = nn.Linear(gat_hidden_size, out_dim)
+        self.fc = nn.Linear(gat_hidden_size*gat_heads, out_dim)
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
