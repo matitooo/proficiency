@@ -337,7 +337,8 @@ def test(model_type,model,data,quantitative_flag = False):
             test_mask = data.test_mask
             y_preds = y_pred[test_mask].cpu().numpy()
             ys = data.y[test_mask].cpu().numpy()
-            
+            if quantitative_flag:
+                return y_test,preds
             scores = {
                 'f1_micro': f1_score(ys, y_preds, average='micro'),
                 'f1_macro': f1_score(ys, y_preds, average='macro'),
