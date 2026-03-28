@@ -68,7 +68,7 @@ if __name__ == "__main__":
                         help="Train and compare models")
     parser.add_argument('--sweep', action='store_true',
                         help="Find the best Hyperparameters configuration")
-    parser.add_argument('--quantitative')
+    parser.add_argument('--quantitative',action='store_true',help='Retrieve predictions')
 
     parser.add_argument('--model', type=str, choices=["linear", "graph","sequential","mixed"],
                         required=True,
