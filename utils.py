@@ -172,7 +172,7 @@ def data_preprocessing(model_name,params,dataset):
         columns = params['columns']
         label_column = dataset['CEFR_level']
         y_values = dataset['CEFR_level'].unique()
-        labels_dict = dict(zip(y_values,range(1,len(y_values)+1)))
+        labels_dict = dict(zip(y_values, range(len(y_values))))  # 0..5
         label_column = label_column.map(labels_dict)
         y_tensor = torch.tensor(label_column.values, dtype=torch.long)
         
