@@ -27,7 +27,6 @@ class BiLSTM_GAT_FC(nn.Module):
         self.fc = nn.Linear(gat_hidden_size*gat_heads, num_classes)
         
     def forward(self, data):
-        print(data.x.shape)
         x, lengths = data.x, data.lengths
         
         packed = pack_padded_sequence(x, lengths.cpu(), batch_first=True, enforce_sorted=False)
