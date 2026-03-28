@@ -71,7 +71,7 @@ sequential:
   BiLSTM:
     model_name: BiLSTM
     input_size: 60
-    hidden_size: 128
+    lstm_hidden_size: 128
     num_classes: 6
     num_layers: 1
     lr: 0.01
