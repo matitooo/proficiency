@@ -39,7 +39,7 @@ def sweep_mode(model_type):
         print(f"Now training {model}")
         sweep_params = sweep_params_gen(model)
         study, objective = create_study_for_model(model_type,dataset,model,sweep_params)
-        n_trials = 20 if model_type == 'linear' else 50
+        n_trials = 20 if model_type == 'linear' else 200
         study.optimize(objective, n_trials=n_trials) 
         best_trial = study.best_trial
         best_params = best_trial.params
