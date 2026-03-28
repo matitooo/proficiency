@@ -24,9 +24,13 @@ def train_mode(model_type):
         trained_model = train(model_type,data,params)
         scores = test(model_type,trained_model,data)
         print(scores)
-
+        return data,trained_model
         
 
+def quantitative_mode(model_type):
+    data,trained_model = train_mode(model_type)
+    y_test,predictions = test(model_type,trained_model,data,quantitative_flag = True)
+    
 def sweep_mode(model_type):
     with open('config/train_config.yaml', "r") as f:
         train_config = yaml.load(f, Loader=yaml.SafeLoader)
@@ -64,6 +68,7 @@ if __name__ == "__main__":
                         help="Train and compare models")
     parser.add_argument('--sweep', action='store_true',
                         help="Find the best Hyperparameters configuration")
+    parser.add_argument('--quantitative')
 
     parser.add_argument('--model', type=str, choices=["linear", "graph","sequential","mixed"],
                         required=True,
@@ -82,7 +87,9 @@ if __name__ == "__main__":
         train_mode(model_type = args.model)
     elif args.sweep:
         sweep_mode(model_type = args.model)
-        
+    
+    if args.quantitative:
+        quantitative_mode(model_type = args.model)
         
         
         

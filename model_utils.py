@@ -261,11 +261,13 @@ def train(model_type, data, params):
 
         
     
-def test(model_type,model,data):
+def test(model_type,model,data,quantitative_flag = False):
     if model_type == 'linear':
         X_train,X_test,y_train,y_test = data
         model_type = type(model).__name__
         preds = model.predict(X_test)
+        if quantitative_flag:
+            return y_test,preds
         acc = accuracy_score(y_test, preds)
         f1_micro = f1_score(y_test, preds, average='micro')
         f1_macro = f1_score(y_test, preds, average='macro')
@@ -286,7 +288,8 @@ def test(model_type,model,data):
 
             y_test = data.y[data.test_mask].cpu().numpy()
             preds = preds[data.test_mask].cpu().numpy()
-
+            if quantitative_flag:
+                return y_test,preds
             acc = accuracy_score(y_test, preds)
             f1_micro = f1_score(y_test, preds, average='micro')
             f1_macro = f1_score(y_test, preds, average='macro')
@@ -314,6 +317,8 @@ def test(model_type,model,data):
             else:
                 y_preds = np.concatenate((y_preds, y_pred.cpu().numpy()))
                 ys = np.concatenate((ys, y.cpu().numpy()))
+        if quantitative_flag:
+            return ys,y_preds
         scores = {
             'f1_micro': f1_score(ys, y_preds, average='micro'),
             'f1_macro': f1_score(ys, y_preds, average='macro'),
