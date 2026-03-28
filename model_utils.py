@@ -5,7 +5,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score,accuracy_score,roc_auc_score
 from models.population_gcn import PopulationGCN,PopulationGAT
 from models.sequential_models import BiLSTM,MHAttention
-from models.mixed_models import BiLSTM_GAT_FC
+from models.mixed_models import BiLSTM_GAT_FC,MHAttention_GAT_FC
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -150,6 +150,15 @@ def train(model_type, data, params):
                 gat_heads=params['gat_heads'],
                 dropout=params['dropout']
             )
+        
+        elif model_name=='MHAttention_GAT_FC':
+            model = MHAttention_GAT_FC(input_size=params['input_size'],
+                embedding_size=params['embed_dim'],
+                gat_hidden_size=params['gat_hidden_size'],
+                attn_heads=params['attn_heads'],
+                gat_heads=params['gat_heads'],
+                num_classes= params['num_classes'],
+                dropout=params['dropout'])
 
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         model = model.to(device)

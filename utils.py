@@ -364,6 +364,34 @@ def sweep_params_gen(model_name):
     "Years_studying_L2|Reinforced_section|Language_exposure|Reading_frequency"
 ]
 }
+    if model_name == 'MHAttention_GAT_FC':
+        sweep  = {'input_size': [60],
+    'embed_dim' : [64,128,256],
+    'num_classes': [6],
+    'gat_hidden_size' : [64,128,256],
+    'attn_heads': [1,2,4],
+    'gat_heads' : [1,2,4],
+    'dropout': [0.0,0.1,0.3],
+    'lr': [0.001, 0.005, 0.01],
+    'weight_decay':[0.01,0.005],
+    'n_epochs': [20, 50, 100],
+    'threshold' : [0.5,0.7,0.9],
+    'graph_columns': [
+    "Years_studying_L2|Reinforced_section",
+    "Years_studying_L2|Language_exposure",
+    "Years_studying_L2|Reading_frequency",
+    "Reinforced_section|Language_exposure",
+    "Reinforced_section|Reading_frequency",
+    "Language_exposure|Reading_frequency",
+
+    "Years_studying_L2|Reinforced_section|Language_exposure",
+    "Years_studying_L2|Reinforced_section|Reading_frequency",
+    "Years_studying_L2|Language_exposure|Reading_frequency",
+    "Reinforced_section|Language_exposure|Reading_frequency",
+
+    "Years_studying_L2|Reinforced_section|Language_exposure|Reading_frequency"
+]}
+        
     return sweep
 
 
