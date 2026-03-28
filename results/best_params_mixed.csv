@@ -1,0 +1,2 @@
+model,best_score,params
+BiLSTM_GAT_FC,0.3435374149659864,"{'input_size': 60, 'lstm_hidden_size': 256, 'gat_hidden_size': 256, 'lstm_layers': 1, 'embed_dim': 16, 'gat_heads': 2, 'dropout': 0.0, 'num_classes': 6, 'lr': 0.001, 'weight_decay': 0.005, 'n_epochs': 50, 'threshold': 0.9, 'graph_columns': 'Language_exposure|Reading_frequency'}"
