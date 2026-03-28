@@ -32,28 +32,34 @@ linear:
 graph:
   GCN:
     model_name: GCN
-    gcn_hidden_size: 64
-    lstm_hidden_size: 256
+    gcn_hidden_size: 128
+    lstm_hidden_size: 64
     embed_dim: 64
-    dropout: 0.3
-    lr: 0.001
+    dropout: 0.0
+    lr: 0.01
     weight_decay: 0.005
     n_epochs: 200
     threshold: 0.9
-    graph_columns: [Years_studying_L2, Reinforced_section, Language_exposure]
+    graph_columns:
+      [
+        Years_studying_L2,
+        Reinforced_section,
+        Language_exposure,
+        "Reading_frequency",
+      ]
 
   GAT:
     model_name: GAT
-    gat_hidden_size: 64
-    lstm_hidden_size: 64
-    embed_dim: 32
-    gat_heads: 2
-    dropout: 0.3
+    gat_hidden_size: 128
+    lstm_hidden_size: 256
+    embed_dim: 16
+    gat_heads: 4
+    dropout: 0.0
     lr: 0.01
-    weight_decay: 0.01
+    weight_decay: 0.005
     n_epochs: 100
     threshold: 0.9
-    graph_columns: [Reinforced_section, Language_exposure, Reading_frequency]
+    graph_columns: [Years_studying_L2, Language_exposure, Reading_frequency]
 
 sequential:
   BiLSTM:
