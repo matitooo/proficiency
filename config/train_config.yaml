@@ -32,7 +32,7 @@ linear:
 graph:
   GCN:
     model_name: GCN
-    hidden_size: 64
+    gcn_hidden_size: 64
     lstm_hidden_size: 128
     embed_dim: 64
     dropout: 0.1
@@ -50,7 +50,7 @@ graph:
 
   GAT:
     model_name: GAT
-    hidden_size: 128
+    gat_hidden_size: 128
     lstm_hidden_size: 64
     embed_dim: 64
     gat_heads: 1
