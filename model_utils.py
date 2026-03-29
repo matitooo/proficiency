@@ -11,7 +11,7 @@ import torch.nn as nn
 import torch.optim as optim
 import numpy as np
 from tqdm import tqdm
-from sklearn.inspection import permutation_importance
+
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -268,20 +268,6 @@ def test(model_type,model,data,quantitative_flag = False):
         preds = model.predict(X_test)
         if quantitative_flag:
             return y_test,preds
-        
-        result = permutation_importance(model, X_test, y_test, n_repeats=10, random_state=42)
-        importances = result.importances_mean
-        
-        indices = np.argsort(importances)[::-1]
-        feature_names = X_test.columns if hasattr(X_test, "columns") else None
-        print(f"\nTop 5 Most Important Features for {model_type}:\n")
-        top_k = 5
-        for i in indices[:top_k]:
-            if feature_names is not None:
-                print(f"{feature_names[i]}: {importances[i]:.6f}")
-            else:
-                print(f"Feature {i}: {importances[i]:.6f}")
-        
         acc = accuracy_score(y_test, preds)
         f1_micro = f1_score(y_test, preds, average='micro')
         f1_macro = f1_score(y_test, preds, average='macro')

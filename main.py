@@ -23,7 +23,7 @@ def train_mode(model_type):
             params[p] =model_config[p]
         data = data_preprocessing(model_type,params,dataset)
         trained_model = train(model_type,data,params)
-        scores = test(model_type,trained_model,data)
+        scores,predictions = test(model_type,trained_model,data,quantitative_flag=True)
 
 def quantitative_mode(model_type):
     df = train_mode(model_type)
