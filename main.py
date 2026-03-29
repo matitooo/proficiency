@@ -26,7 +26,6 @@ def train_mode(model_type):
             data = data_preprocessing(model_type,params,dataset)
             trained_model = train(model_type,data,params)
             y_test,predictions = test(model_type,trained_model,data,quantitative_flag=True)
-            model_out.append[y_test,predictions]
             model_out.append([y_test,predictions])
         out_q[model] = model_out
     rows = []
