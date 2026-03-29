@@ -60,7 +60,9 @@ class PopulationGCN(nn.Module):
         x = self.dropout(x)
         x = self.conv2(x, edge_index, edge_weight=edge_weight)
         x = F.relu(x)
-        return self.fc(x)
+        x = self.fc(x)
+        print(x.shape)
+        return x
 
     def predict(self, data):
         return torch.argmax(self.forward(data), dim=1)

@@ -197,7 +197,7 @@ def train(model_type, data, params):
         dropout = params['dropout']
         lstm_hidden_size = params['lstm_hidden_size']
         
-        out_dim = torch.max(data.y).item() + 1
+        out_dim = 6
 
         if model_name == 'GCN':
             model = PopulationGCN(
