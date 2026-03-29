@@ -61,7 +61,6 @@ class PopulationGCN(nn.Module):
         x = self.conv2(x, edge_index, edge_weight=edge_weight)
         x = F.relu(x)
         x = self.fc(x)
-        print(x.shape)
         return x
 
     def predict(self, data):

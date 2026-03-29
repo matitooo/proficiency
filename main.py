@@ -16,14 +16,32 @@ def train_mode(model_type):
     models_list = models_dict.keys()
     out_q = {}
     for model in models_list:
-        print(f"Now training {model}")
-        params = params_extraction()
-        model_config = models_dict[model]
-        for p in model_config.keys():
-            params[p] =model_config[p]
-        data = data_preprocessing(model_type,params,dataset)
-        trained_model = train(model_type,data,params)
-        scores,predictions = test(model_type,trained_model,data,quantitative_flag=True)
+        model_out = []
+        for i in range(10):
+            print(f"Now training {model}")
+            params = params_extraction()
+            model_config = models_dict[model]
+            for p in model_config.keys():
+                params[p] =model_config[p]
+            data = data_preprocessing(model_type,params,dataset)
+            trained_model = train(model_type,data,params)
+            y_test,predictions = test(model_type,trained_model,data,quantitative_flag=True)
+            model_out.append[y_test,predictions]
+            model_out.append([y_test,predictions])
+        out_q[model] = model_out
+    rows = []
+
+    for model_name, runs in out_q.items():
+        for y_true, y_pred in runs:   # ogni run
+            for yt, yp in zip(y_true, y_pred):
+                rows.append({
+                    "name": model_name,
+                    "y_true": yt,
+                    "y_pred": yp
+                })
+
+    df = pd.DataFrame(rows)
+    return df
 
 def quantitative_mode(model_type):
     df = train_mode(model_type)
