@@ -109,8 +109,7 @@ def data_preprocessing(model_name,params,dataset):
         indices = np.arange(N)
         train_idx, test_idx = train_test_split(
             indices,
-            test_size=0.3,
-            stratify=y_tensor.numpy()
+            test_size=0.3
         )
 
         train_mask = torch.zeros(N, dtype=torch.bool)
@@ -181,9 +180,7 @@ def data_preprocessing(model_name,params,dataset):
         indices = np.arange(N)
         train_idx, test_idx = train_test_split(
             indices,
-            test_size=0.3,
-            stratify=y_tensor.numpy()
-        )
+            test_size=0.3)
 
         train_mask = torch.zeros(N, dtype=torch.bool)
         test_mask = torch.zeros(N, dtype=torch.bool)
