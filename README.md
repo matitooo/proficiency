@@ -35,7 +35,7 @@ The data used in this project comes from the **Celva.Sp dataset**.
 
 A detailed explanation of the methodology, experiments, and results is available here:
 
-🔗 [https://github.com/matitooo/proficiency/tree/main/data/report.pdf](https://github.com/matitooo/proficiency/tree/main/data/report.pdf)
+🔗 [https://github.com/matitooo/proficiency/tree/main/report/PM_ArgMin_Final_Report.pdf](https://github.com/matitooo/proficiency/tree/main/report/PM_ArgMin_Final_Report.pdf)
 
 ---
 
