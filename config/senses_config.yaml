@@ -1,18 +1,12 @@
-senses:
-  - Temporal.Asynchronous
-  - Temporal.Synchronous
-  - Contingency.Cause
-  - Contingency.Pragmatic-cause
-  - Contingency.Condition
-  - Contingency.Pragmatic-condition
-  - Comparison.Contrast
-  - Comparison.Pragmatic-contrast
-  - Comparison.Concession
-  - Comparison.Pragmatic-concession
-  - Expansion.Conjunction
-  - Expansion.Instantiation
-  - Expansion.Restatement
-  - Expansion.Alternative
-  - Expansion.Exception
-  - Expansion.List
-  - EntRel
+Comparison.Concession: 1
+Contingency.Cause: 2
+Comparison.Contrast: 3
+Expansion.Conjunction: 4
+Temporal.Asynchronous: 5
+Expansion.Restatement: 6
+Expansion: 7
+Expansion.Instantiation: 8
+EntRel: 9
+Expansion.Alternative: 10
+Contingency.Condition: 11
+Temporal.Synchrony: 12

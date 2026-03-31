@@ -1,2 +1,100 @@
-lr: 0.001
-n_epochs: 200
+linear:
+  MLP:
+    model_name: MLP
+    lr: 0.01
+    n_epochs: 50
+    hidden_size: 256
+    weight_decay: 0.005
+    activation: relu
+
+  DecisionTree:
+    model_name: DecisionTree
+    max_depth: 3
+    min_samples_split: 10
+    min_samples_leaf: 1
+    criterion: entropy
+
+  RandomForest:
+    model_name: RandomForest
+    n_estimators: 500
+    max_depth: 10
+    min_samples_split: 10
+    min_samples_leaf: 2
+    max_features: log2
+
+  Logreg:
+    model_name: Logreg
+    C: 0.1
+    penalty: l2
+    solver: liblinear
+    max_iter: 2000
+
+graph:
+  GCN:
+    model_name: GCN
+    gcn_hidden_size: 128
+    lstm_hidden_size: 64
+    embed_dim: 64
+    dropout: 0.0
+    lr: 0.01
+    weight_decay: 0.005
+    n_epochs: 200
+    threshold: 0.9
+    graph_columns:
+      [
+        Years_studying_L2,
+        Reinforced_section,
+        Language_exposure,
+        "Reading_frequency",
+      ]
+
+  GAT:
+    model_name: GAT
+    gat_hidden_size: 128
+    lstm_hidden_size: 256
+    embed_dim: 16
+    gat_heads: 4
+    dropout: 0.0
+    lr: 0.01
+    weight_decay: 0.005
+    n_epochs: 100
+    threshold: 0.9
+    graph_columns: [Years_studying_L2, Language_exposure, Reading_frequency]
+
+sequential:
+  BiLSTM:
+    model_name: BiLSTM
+    input_size: 60
+    lstm_hidden_size: 128
+    num_classes: 6
+    num_layers: 1
+    lr: 0.01
+    n_epochs: 100
+    weight_decay: 0.01
+
+  MHAttention:
+    model_name: MHAttention
+    input_size: 60
+    hidden_size: 64
+    num_classes: 6
+    num_heads: 2
+    n_epochs: 50
+    lr: 0.001
+    weight_decay: 0.01
+
+mixed:
+  BiLSTM_GAT_FC:
+    model_name: BiLSTM_GAT_FC
+    input_size: 60
+    lstm_hidden_size: 256
+    lstm_layers: 1
+    gat_hidden_size: 256
+    gat_heads: 2
+    embed_dim: 16
+    dropout: 0.0
+    num_classes: 6
+    lr: 0.001
+    weight_decay: 0.005
+    n_epochs: 50
+    threshold: 0.9
+    graph_columns: [Language_exposure, Reading_frequency]

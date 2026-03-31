@@ -1,0 +1,10 @@
+,model,best_score,params,input
+8,MHAttention,0.5126903553299492,"{'input_size': 60, 'hidden_size': 64, 'num_heads': 2, 'num_classes': 6, 'lr': 0.001, 'n_epochs': 50, 'weight_decay': 0.01}",senses+full text
+5,Logreg,0.4595959595959596,"{'C': 0.1, 'penalty': 'l2', 'solver': 'liblinear', 'max_iter': 2000}",subjects attributes
+4,RandomForest,0.4444444444444444,"{'n_estimators': 500, 'max_depth': 10, 'min_samples_split': 10, 'min_samples_leaf': 2, 'max_features': 'log2'}",subjects attributes
+0,GCN,0.4353741496598639,"{'gcn_hidden_size': 64, 'lstm_hidden_size': 128, 'embed_dim': 64, 'dropout': 0.1, 'lr': 0.005, 'weight_decay': 0.005, 'n_epochs': 100, 'threshold': 0.9, 'graph_columns': 'Years_studying_L2|Reinforced_section|Language_exposure|Reading_frequency'}",senses+subject attributes(for graph building)
+1,GAT,0.4115646258503401,"{'embed_dim': 64, 'lstm_hidden_size': 64, 'gat_hidden_size': 128, 'gat_heads': 1, 'dropout': 0.0, 'lr': 0.005, 'weight_decay': 0.005, 'n_epochs': 100, 'threshold': 0.9, 'graph_columns': 'Years_studying_L2|Reinforced_section|Language_exposure|Reading_frequency'}",senses+subject attributes(for graph building)
+3,DecisionTree,0.3939393939393939,"{'max_depth': 3, 'min_samples_split': 10, 'min_samples_leaf': 1, 'criterion': 'entropy'}",subjects attributes
+7,BiLSTM,0.3908629441624365,"{'input_size': 60, 'num_classes': 6, 'lstm_hidden_size': 128, 'lr': 0.01, 'n_epochs': 100, 'weight_decay': 0.01}",senses+full text
+2,MLP,0.3737373737373737,"{'lr': 0.01, 'n_epochs': 50, 'hidden_size': 256, 'weight_decay': 0.005, 'activation': 'relu'}",subjects attributes
+6,BiLSTM_GAT_FC,0.3435374149659864,"{'input_size': 60, 'lstm_hidden_size': 256, 'gat_hidden_size': 256, 'lstm_layers': 1, 'embed_dim': 16, 'gat_heads': 2, 'dropout': 0.0, 'num_classes': 6, 'lr': 0.001, 'weight_decay': 0.005, 'n_epochs': 50, 'threshold': 0.9, 'graph_columns': 'Language_exposure|Reading_frequency'}",senses+full text+subject attributes(for graph building)

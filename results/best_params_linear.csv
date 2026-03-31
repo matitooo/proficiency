@@ -1,0 +1,5 @@
+model,best_score,params
+MLP,0.37373737373737376,"{'lr': 0.01, 'n_epochs': 50, 'hidden_size': 256, 'weight_decay': 0.005, 'activation': 'relu'}"
+DecisionTree,0.3939393939393939,"{'max_depth': 3, 'min_samples_split': 10, 'min_samples_leaf': 1, 'criterion': 'entropy'}"
+RandomForest,0.4444444444444444,"{'n_estimators': 500, 'max_depth': 10, 'min_samples_split': 10, 'min_samples_leaf': 2, 'max_features': 'log2'}"
+Logreg,0.4595959595959596,"{'C': 0.1, 'penalty': 'l2', 'solver': 'liblinear', 'max_iter': 2000}"
