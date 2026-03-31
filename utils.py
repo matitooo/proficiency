@@ -1,22 +1,21 @@
-import yaml 
+from itertools import product
+import yaml
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder, StandardScaler
 import torch
+from torch.utils.data import DataLoader, random_split
 from torch.nn.utils.rnn import pad_sequence
 from torch_geometric.data import Data
-from itertools import product
-from sklearn.preprocessing import LabelEncoder,StandardScaler
-from torch.utils.data import  DataLoader
-from text_embedding_utils import SenseDataset,collate_fn
-from torch.utils.data import random_split
-from model_utils import train,test
 import optuna
-import ast
+from text_embedding_utils import SenseDataset, collate_fn
+from model_utils import train, test
 
 sense_dataset = SenseDataset()
 
 def params_extraction():
+    "Extracts graph/model/dataset params and creates parameters dictionary"
     graph_config_path =  "config/graph_config.yaml"
     model_config_path = "config/model_config.yaml"
     df_config_path = "config/df_config.yaml"
@@ -30,7 +29,9 @@ def params_extraction():
     return params
 
 def data_preprocessing(model_name,params,dataset):
+    "Preprocess data based on model type, returns data object"
     dataset = dataset.copy(deep=True)
+    # Linear Models
     if model_name == 'linear':  
         columns = params['columns']
         columns_categorical = columns['categorical']
@@ -39,28 +40,27 @@ def data_preprocessing(model_name,params,dataset):
         label = columns['label']
         dataset = dataset.drop(columns=['pseudo','sense','Student_text','Vocab_range'])
         dataset = pd.get_dummies(dataset, columns=columns_categorical+columns_binary)
-        # dataset[columns_numerical] = (dataset[columns_numerical] - dataset[columns_numerical].min()) / (dataset[columns_numerical].max() - dataset[columns_numerical].min())
         y = dataset[label].values.ravel()
         le = LabelEncoder()
         y = le.fit_transform(y)
         X = dataset.drop(columns=label)
-        X_train,X_test,y_train,y_test = train_test_split(X,y, test_size=0.2)
+        X_train,X_test,y_train,y_test = train_test_split(X,y, test_size=0.3)
         scaler = StandardScaler()
         X_train[columns_numerical] = scaler.fit_transform(X_train[columns_numerical])
         X_test[columns_numerical] = scaler.transform(X_test[columns_numerical])
         return X_train,X_test,y_train,y_test
     
-    
+    # Sequential Models
     elif model_name =='sequential':
-        train_dataset, test_dataset = random_split(sense_dataset, [0.8, 0.2])
+        train_dataset, test_dataset = random_split(sense_dataset, [0.7, 0.3])
         train_loader = DataLoader(train_dataset, batch_size=32, collate_fn=collate_fn)
         test_loader = DataLoader(test_dataset, batch_size=32, collate_fn=collate_fn)
         return [train_loader,test_loader]
     
+    # Mixed Models
     elif model_name == 'mixed':
-        data_list = sense_dataset.data   # [id, tensor(L,d), label]
+        data_list = sense_dataset.data   
 
-        # mapping id → features / label
         id_to_tensor = {instance[0]: instance[1] for instance in data_list}
         id_to_label  = {instance[0]: instance[2] for instance in data_list}
 
@@ -73,7 +73,7 @@ def data_preprocessing(model_name,params,dataset):
             tensors.append(id_to_tensor[i])
             labels.append(id_to_label[i])
 
-        padded = pad_sequence(tensors, batch_first=True)   # (N, L, d)
+        padded = pad_sequence(tensors, batch_first=True)  
         lengths = torch.tensor([t.shape[0] for t in tensors])
         y_tensor = torch.stack(labels)
 
@@ -104,7 +104,6 @@ def data_preprocessing(model_name,params,dataset):
         edge_index = adj_tensor.nonzero(as_tuple=False).t().contiguous()
         edge_weight = adj_tensor[adj_tensor != 0]
 
-        # Split train/test
         N = y_tensor.size(0)
         indices = np.arange(N)
         train_idx, test_idx = train_test_split(
@@ -117,7 +116,6 @@ def data_preprocessing(model_name,params,dataset):
         train_mask[train_idx] = True
         test_mask[test_idx] = True
 
-        # Creazione oggetto Data finale
         data = Data(
             x=padded,            
             lengths=lengths,      
@@ -130,8 +128,8 @@ def data_preprocessing(model_name,params,dataset):
 
         return data
     
+    # Graph Models
     elif model_name == 'graph':
-    # Config colonne e grafi
         columns = params['columns']
         columns_categorical = columns['categorical']
         columns_numerical = columns['numerical']
@@ -141,7 +139,6 @@ def data_preprocessing(model_name,params,dataset):
         n_examples = dataset.shape[0]
         n_features = len(graph_columns)
 
-        # Creazione matrice di adiacenza
         adjacency = np.zeros((n_examples, n_examples))
         for column in graph_columns:
             values = dataset[column].values
@@ -157,7 +154,6 @@ def data_preprocessing(model_name,params,dataset):
         edge_index = adj_tensor.nonzero(as_tuple=False).t().contiguous()
         edge_weight = adj_tensor[adj_tensor != 0]
 
-        # Embedding dei sensi
         with open('config/senses_config.yaml', "r") as f:
             sense_dict = yaml.load(f, Loader=yaml.SafeLoader)
 
@@ -166,17 +162,15 @@ def data_preprocessing(model_name,params,dataset):
             torch.tensor([sense_dict[sense] for sense in sense_seq], dtype=torch.long)
             for sense_seq in senses_dataset
         ]
-        padding_idx = len(sense_dict)  # indice fuori range per il padding
+        padding_idx = len(sense_dict)
         padded = pad_sequence(senses_sequence, batch_first=True, padding_value=padding_idx)
         lengths = torch.tensor([len(s) for s in senses_sequence])
 
-        # Mapping forzato CEFR
         cefr_dict = {'A1': 0, 'A2': 1, 'B1': 2, 'B2': 3, 'C1': 4, 'C2': 5}
         label_column = dataset['CEFR_level'].map(cefr_dict)
         y_tensor = torch.tensor(label_column.values, dtype=torch.long)
         N = y_tensor.size(0)
 
-        # Split train/test
         indices = np.arange(N)
         train_idx, test_idx = train_test_split(
             indices,
@@ -187,7 +181,6 @@ def data_preprocessing(model_name,params,dataset):
         train_mask[train_idx] = True
         test_mask[test_idx] = True
 
-        # Creazione oggetto Data finale
         data = Data(
             x=padded,
             y=y_tensor,
@@ -201,25 +194,8 @@ def data_preprocessing(model_name,params,dataset):
         return data
 
 
-def generate_model_sweeps(param_grids):
-    sweeps = {}
-
-    for model_name, params in param_grids.items():
-        keys = list(params.keys())
-        values = list(params.values())
-
-        model_configs = []
-        for combination in product(*values):
-            config = dict(zip(keys, combination))
-            model_configs.append(config)
-
-        sweeps[model_name] = model_configs
-
-    return sweeps
-
-
-
 def sweep_params_gen(model_name):
+    "Stores Sweep Parameters. Return sweep parameters for selected model"
     if model_name == 'MLP':
         sweep = {
             'lr': [0.001, 0.005, 0.01],
@@ -361,6 +337,7 @@ def sweep_params_gen(model_name):
     "Years_studying_L2|Reinforced_section|Language_exposure|Reading_frequency"
 ]
 }
+    
     if model_name == 'MHAttention_GAT_FC':
         sweep  = {'input_size': [60],
     'embed_dim' : [64,128,256],
@@ -393,7 +370,7 @@ def sweep_params_gen(model_name):
 
 
 def create_study_for_model(model_type,dataset,model_name,sweep_params):
-
+    "Creates optuna study for bayesian hyperparameter tuning for selected model"
     def objective(trial):
         params = params_extraction()
         for param, values in sweep_params.items():

@@ -2,13 +2,13 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import f1_score,accuracy_score,roc_auc_score
 from models.population_gcn import PopulationGCN,PopulationGAT
 from models.sequential_models import BiLSTM,MHAttention
 from models.mixed_models import BiLSTM_GAT_FC
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from sklearn.metrics import f1_score,accuracy_score
 import numpy as np
 from tqdm import tqdm
 
@@ -16,8 +16,9 @@ from tqdm import tqdm
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def train(model_type, data, params):
-
-    # Linear models
+    "Return trained instance of model based on model type"
+    
+    #Linear Models
     if model_type == 'linear':
         X_train, X_test, y_train, y_test = data
         y_train = y_train.astype(np.int64)
@@ -71,7 +72,7 @@ def train(model_type, data, params):
         model.fit(X_train, y_train.squeeze())
         return model
 
-    # Sequential models
+    # Sequential Models
     elif model_type == 'sequential':
         train_loader, test_loader = data
         model_name = params['model_name']
@@ -108,32 +109,24 @@ def train(model_type, data, params):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         model.to(device)
         model.train()
-
         prev_loss = 0
-
         for epoch in tqdm(range(num_epochs)):
             total_loss = 0
-
             for x, y, x_lengths in train_loader:
                 x = x.to(device)
                 y = y.to(device)
-
                 optimizer.zero_grad()
                 outputs = model(x, x_lengths)
                 loss = criterion(outputs, y)
                 loss.backward()
                 optimizer.step()
-
                 total_loss += loss.item()
-
+                
             avg_loss = total_loss / len(train_loader)
-
             if abs(prev_loss - avg_loss) < 1e-4:
                 break
             prev_loss = avg_loss
-
             print(f"Epoch {epoch+1}, Loss: {avg_loss:.4f}", end="\r")
-
         return model
 
     # Mixed Models
@@ -150,43 +143,32 @@ def train(model_type, data, params):
                 gat_heads=params['gat_heads'],
                 dropout=params['dropout']
             )
-        
-
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         model = model.to(device)
         data = data.to(device)
-
         criterion = nn.CrossEntropyLoss()
         optimizer = optim.Adam(
             model.parameters(),
             lr=params['lr'],
             weight_decay=params['weight_decay']
         )
-
         prev_loss = 0
         num_epochs = params['n_epochs']
 
         for epoch in tqdm(range(num_epochs)):
             model.train()
             optimizer.zero_grad()
-
             out = model(data)
-
             loss = criterion(
                 out[data.train_mask],
                 data.y[data.train_mask]
             )
-
             if abs(prev_loss - loss.item()) < 1e-4:
                 break
-
             prev_loss = loss.item()
             loss.backward()
             optimizer.step()
-
             if epoch % 10 == 0:
                 print(f"Epoch {epoch+1}/{num_epochs} | Loss: {loss.item():.4f}")
-
         return model
 
     # Graph Models
@@ -196,7 +178,6 @@ def train(model_type, data, params):
         embed_dim = params['embed_dim']
         dropout = params['dropout']
         lstm_hidden_size = params['lstm_hidden_size']
-        
         out_dim = 6
 
         if model_name == 'GCN':
@@ -208,7 +189,7 @@ def train(model_type, data, params):
                 out_dim=out_dim,
                 dropout=dropout
             )
-
+            
         elif model_name == 'GAT':
             model = PopulationGAT(
                 num_categories=num_categories,
@@ -220,7 +201,7 @@ def train(model_type, data, params):
                 dropout=dropout
             )
 
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        
         model = model.to(device)
         data = data.to(device)
 
@@ -237,37 +218,32 @@ def train(model_type, data, params):
         for epoch in tqdm(range(num_epochs)):
             model.train()
             optimizer.zero_grad()
-
             out = model(data)
-
             loss = criterion(
                 out[data.train_mask],
                 data.y[data.train_mask]
             )
-
             if abs(prev_loss - loss.item()) < 1e-4:
                 break
-
             prev_loss = loss.item()
             loss.backward()
             optimizer.step()
-
             if epoch % 10 == 0:
                 print(f"Epoch {epoch+1}/{num_epochs} | Loss: {loss.item():.4f}")
-
         return model
     
 
 
         
     
-def test(model_type,model,data,quantitative_flag = False):
+def test(model_type,model,data):
+    "Evaluate trained instance on model: returns scores dictionary"
+    
+    #Linear Models
     if model_type == 'linear':
         X_train,X_test,y_train,y_test = data
         model_type = type(model).__name__
         preds = model.predict(X_test)
-        if quantitative_flag:
-            return y_test,preds
         acc = accuracy_score(y_test, preds)
         f1_micro = f1_score(y_test, preds, average='micro')
         f1_macro = f1_score(y_test, preds, average='macro')
@@ -280,28 +256,7 @@ def test(model_type,model,data,quantitative_flag = False):
         }
         return scores
     
-    elif model_type == 'graph':
-        model.eval()
-        with torch.no_grad():
-            logits = model(data)             
-            preds = logits.argmax(dim=1)       
-
-            y_test = data.y[data.test_mask].cpu().numpy()
-            preds = preds[data.test_mask].cpu().numpy()
-            if quantitative_flag:
-                return y_test,preds
-            acc = accuracy_score(y_test, preds)
-            f1_micro = f1_score(y_test, preds, average='micro')
-            f1_macro = f1_score(y_test, preds, average='macro')
-            f1_weighted = f1_score(y_test, preds, average='weighted')
-            scores = {
-                'f1_micro': f1_micro,
-                'f1_macro': f1_macro,
-                'f1_weighted': f1_weighted,
-                'accuracy': acc
-            }
-        return scores
-    
+    # Sequential Models
     elif model_type=='sequential':
         train_loader,test_loader = data
         y_preds = np.empty(0)
@@ -317,8 +272,6 @@ def test(model_type,model,data,quantitative_flag = False):
             else:
                 y_preds = np.concatenate((y_preds, y_pred.cpu().numpy()))
                 ys = np.concatenate((ys, y.cpu().numpy()))
-        if quantitative_flag:
-            return ys,y_preds
         scores = {
             'f1_micro': f1_score(ys, y_preds, average='micro'),
             'f1_macro': f1_score(ys, y_preds, average='macro'),
@@ -328,6 +281,7 @@ def test(model_type,model,data,quantitative_flag = False):
 
         return scores
     
+    #Mixed Models
     elif model_type == 'mixed':
         model.eval()
         with torch.no_grad():
@@ -337,8 +291,6 @@ def test(model_type,model,data,quantitative_flag = False):
             test_mask = data.test_mask
             y_preds = y_pred[test_mask].cpu().numpy()
             ys = data.y[test_mask].cpu().numpy()
-            if quantitative_flag:
-                return ys,y_preds
             scores = {
                 'f1_micro': f1_score(ys, y_preds, average='micro'),
                 'f1_macro': f1_score(ys, y_preds, average='macro'),
@@ -346,6 +298,26 @@ def test(model_type,model,data,quantitative_flag = False):
                 'accuracy': accuracy_score(ys, y_preds)
             }
             
+        return scores
+    
+    #Graph Models
+    elif model_type == 'graph':
+        model.eval()
+        with torch.no_grad():
+            logits = model(data)             
+            preds = logits.argmax(dim=1)       
+            y_test = data.y[data.test_mask].cpu().numpy()
+            preds = preds[data.test_mask].cpu().numpy()
+            acc = accuracy_score(y_test, preds)
+            f1_micro = f1_score(y_test, preds, average='micro')
+            f1_macro = f1_score(y_test, preds, average='macro')
+            f1_weighted = f1_score(y_test, preds, average='weighted')
+            scores = {
+                'f1_micro': f1_micro,
+                'f1_macro': f1_macro,
+                'f1_weighted': f1_weighted,
+                'accuracy': acc
+            }
         return scores
   
 

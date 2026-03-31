@@ -7,7 +7,6 @@ class BiLSTM_GAT_FC(nn.Module):
     def __init__(self, input_size, lstm_hidden_size, lstm_layers, gat_hidden_size, num_classes,dropout, gat_heads):
         super().__init__()
         
-        # 🔹 BiLSTM
         self.bilstm = nn.LSTM(
             input_size,
             lstm_hidden_size,
@@ -16,14 +15,12 @@ class BiLSTM_GAT_FC(nn.Module):
             bidirectional=True
         )
         
-        # 🔹 GAT
         self.gat1 = GATConv(lstm_hidden_size*2, gat_hidden_size, heads=gat_heads, concat=True)
         self.gat2 = GATConv(gat_hidden_size*gat_heads, gat_hidden_size, heads=gat_heads, concat=True)
         self.dropout = nn.Dropout(p=dropout)
         
         self.relu = nn.ReLU()
         
-        # 🔹 FC finale per predizione
         self.fc = nn.Linear(gat_hidden_size*gat_heads, num_classes)
         
     def forward(self, data):
@@ -34,7 +31,7 @@ class BiLSTM_GAT_FC(nn.Module):
         
         h_forward = h_n[-2, :, :]
         h_backward = h_n[-1, :, :]
-        h = torch.cat([h_forward, h_backward], dim=-1)  # (N, lstm_hidden_size*2)
+        h = torch.cat([h_forward, h_backward], dim=-1) 
         
         h = self.gat1(h, data.edge_index)
         h = self.relu(h)
@@ -42,6 +39,6 @@ class BiLSTM_GAT_FC(nn.Module):
         h = self.gat2(h, data.edge_index)
         h = self.relu(h)
         
-        out = self.fc(h)  # (N, num_classes)
+        out = self.fc(h)
         return out
 
