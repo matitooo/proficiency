@@ -1,4 +1,4 @@
-# 🧠 English Proficiency Prediction with SenseFlow & Graph Neural Networks
+# English Proficiency Prediction with SenseFlow & Graph Neural Networks
 
 **Course:** Mining Opinions and Arguments
 **Academic Year:** 2025–2026
